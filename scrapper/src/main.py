@@ -35,7 +35,7 @@ players = []
 options = uc.ChromeOptions() 
 options.headless = False  
 driver = uc.Chrome(use_subprocess=True, options=options)
-# driver.maximize_window()
+driver.maximize_window()
 
 for index, name in enumerate(positions_dict):
     positions.append({
@@ -57,37 +57,46 @@ for index, name in enumerate(positions_dict):
 
         players_1 = driver.find_elements(By.CLASS_NAME, "player_tr_1")
         players_2 = driver.find_elements(By.CLASS_NAME, "player_tr_2")
-        players = players_1 + players_2
+        players_trs = players_1 + players_2
         cont = 0
         
-        for p in players:
+        for p in players_trs:
             player = {
                 'position': positions[-1]['id']
             }
 
-            tds = p.findAll("td")
+            tds = p.find_elements(By.TAG_NAME, "td")
 
-            player['id'] = tds[0].find(
-                'div', {"class": "igs-btn"})['data-playerid']
+            player["id"] = tds[0].find_element(By.TAG_NAME, "div").get_attribute('data-playerid')
+            player["name"] = tds[1].find_element(By.XPATH, "div[2]/div[1]/a").text
+
+            players_club_nation = tds[1].find_element(By.XPATH, "div[2]/div[2]/span").find_elements(By.TAG_NAME, "a")
+            player['team'] = players_club_nation[0].get_attribute('data-original-title')
+            player['nation'] = players_club_nation[1].get_attribute('data-original-title')
+            player['league'] = players_club_nation[2].get_attribute('data-original-title')
+            player['specific_position'] = tds[3].find_element(By.TAG_NAME, "div").text
+            player['skills'] = tds[6].text
+            player['weak_foot'] = tds[7].text
+            player['work_rate'] = tds[8].text
+
+            player['pace'] = tds[9].find_element(By.TAG_NAME, "span").text
+            player['shooting'] = tds[10].find_element(By.TAG_NAME, "span").text
+            player['passing'] = tds[11].find_element(By.TAG_NAME, "span").text
+            player['dribbling'] = tds[12].find_element(By.TAG_NAME, "span").text
+            player['defending'] = tds[13].find_element(By.TAG_NAME, "span").text
+            player['physical'] = tds[14].find_element(By.TAG_NAME, "span").text
             
-            player['name'] = tds[1].find(
-                'a', {"class": "player_name_players_table"}).text
-            
-            players_club_nation = tds[1].find(
-                'span', {"class": "players_club_nation"}).findAll("a")
-            player['team'] = players_club_nation[0]['data-original-title']
-            player['nation'] = players_club_nation[1]['data-original-title']
-            player['league'] = players_club_nation[2]['data-original-title']
-            
-            player_img_url = tds[1].find(
-            'img', {"class": "player_img"})['src']
+            # player_img_url = tds[1].find(
+            # 'img', {"class": "player_img"})['src']
         
-            if('notfound_player' not in player_img_url):
-                file_path = save_image(player_img_url, 'players', f"{player['name'].replace(' ', '')}_{player['id']}.jpg")
-                player['image_path'] = file_path
-            else:
-                cont += 2
-                continue
+            # if('notfound_player' not in player_img_url):
+            #     file_path = save_image(player_img_url, 'players', f"{player['name'].replace(' ', '')}_{player['id']}.jpg")
+            #     player['image_path'] = file_path
+            # else:
+            #     cont += 2
+            #     continue
+
+            players.append(player)
 
 
         # page_soup = soup(htmlContent, "html.parser")
@@ -191,6 +200,8 @@ for index, name in enumerate(positions_dict):
         # cont += 2
 
 driver.quit()
+
+print('players', players)
 
 def save_list_to_json(asset_list, file_path):
     with open(file_path, 'w') as f:
