@@ -47,11 +47,10 @@ def extract_save_img(element, element_name, obj_list, dir_name, dict_complement=
     try:
         obj = next(filter(lambda x: x["name"] == element_name, obj_list))
     except StopIteration:
-        if "notfound" not in img:
-            file_path = save_image(
-                img, dir_name, f"{element_name.replace(' ', '')}.png"
-            )
-            img = file_path
+        file_path = save_image(
+            img, dir_name, f"{element_name.replace(' ', '')}.png"
+        )
+        img = file_path
 
         obj_list.append(
             {
