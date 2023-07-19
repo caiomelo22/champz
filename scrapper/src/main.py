@@ -1,8 +1,7 @@
 import time
+from helpers import ImageHelper
 from selenium.webdriver.common.by import By
 import undetected_chromedriver as uc
-import requests
-import io
 import json
 import os
 
@@ -20,44 +19,7 @@ base_url = (
     "https://www.futbin.com/players?page=1&version=gold_rare&pos_type=all&position="
 )
 
-
-def save_image(img, directory, file_name):
-    image_content = requests.get(img).content
-    image_file = io.BytesIO(image_content)
-    directory = f"dist/{directory}"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    file_path = f"{directory}/{file_name}"
-
-    open(file_path, "wb").write(image_file.getbuffer())
-    return file_path
-
-
-def get_img_url(element):
-    return element.find_element(By.TAG_NAME, "img").get_attribute("src")
-
-
-def extract_save_img(element, element_name, obj_list, dir_name, dict_complement={}):
-    img = get_img_url(element)
-    try:
-        obj = next(filter(lambda x: x["name"] == element_name, obj_list))
-    except StopIteration:
-        file_path = save_image(img, dir_name, f"{element_name.replace(' ', '')}.png")
-        img = file_path
-
-        obj_list.append(
-            {
-                "id": len(obj_list) + 1,
-                "name": element_name,
-                "image_path": img,
-                **dict_complement,
-            }
-        )
-
-        obj = obj_list[-1]
-
-    return obj
-
+image_helper = ImageHelper()
 
 positions = []
 teams = []
@@ -140,17 +102,17 @@ for index, name in enumerate(positions_dict):
             player["defending"] = tds[13].find_element(By.TAG_NAME, "span").text
             player["physical"] = tds[14].find_element(By.TAG_NAME, "span").text
 
-            nation = extract_save_img(
+            nation = image_helper.extract_save_img(
                 players_club_nation[1], player["nation"], nations, "images/nations"
             )
-            league = extract_save_img(
+            league = image_helper.extract_save_img(
                 players_club_nation[2],
                 player["league"],
                 leagues,
                 "images/leagues",
                 {"nation": nation["id"]},
             )
-            team = extract_save_img(
+            team = image_helper.extract_save_img(
                 players_club_nation[0],
                 player["team_origin"],
                 teams,
@@ -159,8 +121,10 @@ for index, name in enumerate(positions_dict):
             )
             player["team_origin"], player["nation"] = team["id"], nation["id"]
 
-            player_img = get_img_url(tds[1].find_element(By.XPATH, "div[1]"))
-            file_path = save_image(
+            player_img = image_helper.get_img_url(
+                tds[1].find_element(By.XPATH, "div[1]")
+            )
+            file_path = image_helper.save_image(
                 player_img,
                 "images/players",
                 f"{player['name'].replace(' ', '')}_{player['id']}.png",
