@@ -1,10 +1,5 @@
-from urllib.request import Request, urlopen as uReq
-from bs4 import BeautifulSoup as soup
-from selenium import webdriver
 import time
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 import undetected_chromedriver as uc
 import requests
 import io
@@ -47,9 +42,7 @@ def extract_save_img(element, element_name, obj_list, dir_name, dict_complement=
     try:
         obj = next(filter(lambda x: x["name"] == element_name, obj_list))
     except StopIteration:
-        file_path = save_image(
-            img, dir_name, f"{element_name.replace(' ', '')}.png"
-        )
+        file_path = save_image(img, dir_name, f"{element_name.replace(' ', '')}.png")
         img = file_path
 
         obj_list.append(
