@@ -1,11 +1,5 @@
 # User specific files
-config.py
-champz.txt
-matches.txt
-transfers.txt
-teams.xlsx
-players.xlsx
-wwwroot
+legacy
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
