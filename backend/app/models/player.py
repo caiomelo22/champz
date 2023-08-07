@@ -19,6 +19,7 @@ class player(BaseModel):
     skills: str
     weak_foot: str
     work_rate: str
+    overall: int
     pace: int
     shooting: int
     passing: int
