@@ -17,7 +17,7 @@ load_dotenv()
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_HOST = os.environ.get("DB_HOST")
-DB_NAME = os.environ.get("DB_NAME")
+DB_NAME = os.environ.get("DB_DATABASE")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
