@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 
 class player(BaseModel):
-    id: int
-    position: int
+    id: str
+    position_id: int
+    team_origin_id: int
+    team_participant_id: int
     name: str
-    nation: int
-    league: int
+    nation_id: int
     specific_position: str
     skills: str
     weak_foot: str
