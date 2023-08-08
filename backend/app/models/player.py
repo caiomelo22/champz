@@ -1,5 +1,7 @@
 import typing as t
+
 from pydantic import BaseModel
+
 
 class player(BaseModel):
     id: str
@@ -8,6 +10,7 @@ class player(BaseModel):
     team_participant_id: t.Optional[int] = None
     team_participant_name: t.Optional[str] = None
     team_participant_image_path: t.Optional[str] = None
+    participant_id: t.Optional[int] = None
     team_origin_id: int
     team_origin_name: str
     team_origin_image_path: str
@@ -27,4 +30,9 @@ class player(BaseModel):
     defending: int
     physical: int
     image_path: str
+    value: int
 
+
+class buy_player_model(BaseModel):
+    team_participant: t.Optional[int]
+    value: int

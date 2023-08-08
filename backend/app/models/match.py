@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class match(BaseModel):
     id: int
     participant_1_id: int

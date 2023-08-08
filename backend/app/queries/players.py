@@ -2,6 +2,7 @@ players_query = """SELECT
     player.*,
     team_participant.name as team_participant_name,
     team_participant.image_path as team_participant_image_path,
+    team_participant.participant_id as participant_id,
     team_origin.name as team_origin_name,
     team_origin.image_path as team_origin_image_path,
     nation.name as nation_name,
@@ -12,6 +13,17 @@ FROM
     LEFT JOIN `fifa-db`.position as position ON player.position_id = position.id
     LEFT JOIN `fifa-db`.team as team_origin ON player.team_origin_id = team_origin.id
     LEFT JOIN `fifa-db`.team as team_participant ON player.team_participant_id = team_participant.id
-    LEFT JOIN `fifa-db`.nation as nation ON player.nation_id = nation.id;
-ORDER BY player.overall DESC, player.pace DESC
+    LEFT JOIN `fifa-db`.nation as nation ON player.nation_id = nation.id
+"""
+
+player_exists_by_id_query = """
+    SELECT SELECT COUNT(*) AS player_count
+    FROM player
+    WHERE id = :player_id
+"""
+
+buy_player_query = """
+    UPDATE `fifa-db`.player
+    SET value = :value, team_participant_id = :team_participant_id
+    WHERE id = :player_id;
 """

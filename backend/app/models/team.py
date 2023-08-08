@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class team(BaseModel):
     id: int
     name: str
@@ -7,4 +8,3 @@ class team(BaseModel):
     league_image_path: str
     image_path: str
     participant_id: int
-
