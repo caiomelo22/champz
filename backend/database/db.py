@@ -18,7 +18,7 @@ class Database:
         self.password = os.getenv("DB_PASSWORD")
         self.database = os.getenv("DB_DATABASE")
 
-    def execute_query(self, query: str, args: Optional[tuple] = None) -> bool:
+    def execute_query(self, query: str, args: Optional[tuple] = None) -> int:
         try:
             with closing(
                 mysql.connector.connect(
@@ -34,9 +34,16 @@ class Database:
                     else:
                         cursor.execute(query, args)
                     conn.commit()
+
+                    # If the query altered the instance and assigned a new ID
+                    if cursor.lastrowid:
+                        return cursor.lastrowid
+
+            return -1  # Return a default value if no ID was altered
+
         except Exception as e:
             raise HTTPException(
-                status_code=500, detail="Error when executing query: {e}"
+                status_code=500, detail=f"Error when executing query: {e}"
             )
 
     def execute_select_query(

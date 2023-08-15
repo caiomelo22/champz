@@ -1,15 +1,23 @@
 # db/crud.py
 
-from app.queries.teams import get_participant_id_by_team_query
+from fastapi import HTTPException
+
+from app.queries.teams import (add_participant_to_team_query,
+                               get_participant_id_by_team_query)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
 
 
-def get_participant_by_team(team_id: int) -> int:
+def add_participant_to_team(participant_id: int, team_id: int) -> None:
+    args = {"participant_id": participant_id, "team_id": team_id}
+    database.execute_query(add_participant_to_team_query, args)
+
+
+def get_participant_id_by_team_id(team_id: int) -> int:
     args = {"team_id": team_id}
     results = database.execute_select_query(get_participant_id_by_team_query, args)
     if not results:
-        return None
+        raise HTTPException(status_code=404, detail="Selected team not found")
 
     return results[0]["participant_id"]

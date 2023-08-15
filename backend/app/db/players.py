@@ -3,8 +3,8 @@
 import typing as t
 
 from app.models.player import player
-from app.queries.players import (buy_player_query, player_exists_by_id_query,
-                                 players_query)
+from app.queries.players import (buy_player_query, change_players_team_query,
+                                 player_exists_by_id_query, players_query)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
@@ -20,6 +20,19 @@ def get_players(where_clauses: t.List[str], limit_clause: str = "") -> t.List[pl
     players = [player(**r) for r in results]
 
     return players
+
+
+def get_player_by_id(player_id: str) -> player:
+    where_clause = f" WHERE id = '{player_id}'"
+    limit_clause = " LIMIT 1"
+    query = players_query + where_clause + limit_clause
+    results = database.execute_select_query(query)
+    if not results:
+        return None
+
+    player_instance = player(**results[0])
+
+    return player_instance
 
 
 def check_player_exists(player_id: str) -> bool:
@@ -40,3 +53,11 @@ def buy_player(
         "value": value,
     }
     database.execute_query(buy_player_query, args)
+
+
+def change_players_team(new_team_id: int, old_team_id: int) -> None:
+    args = {
+        "new_team_id": new_team_id,
+        "old_team_id": old_team_id,
+    }
+    database.execute_query(change_players_team_query, args)

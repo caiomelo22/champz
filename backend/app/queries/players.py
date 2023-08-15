@@ -27,3 +27,9 @@ buy_player_query = """
     SET value = :value, team_participant_id = :team_participant_id
     WHERE id = :player_id;
 """
+
+change_players_team_query = """
+    UPDATE `fifa-db`.player
+    SET team_participant_id = :new_team_id
+    WHERE team_participant_id = :old_team_id;
+"""

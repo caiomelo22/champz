@@ -1,10 +1,14 @@
-# db/crud.py
+import typing as t
 
 from fastapi import HTTPException
 
+from app.models.participant import participant
 from app.queries.participants import (change_participant_budget_query,
                                       get_participant_budget_query,
-                                      num_participants_query)
+                                      insert_participant_query,
+                                      list_participants_query,
+                                      num_participants_query,
+                                      update_participant_query)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
@@ -37,3 +41,33 @@ def update_participant_budget(participant_id: int, value: int) -> None:
 
     args = {"participant_id": participant_id, "value": value}
     database.execute_query(change_participant_budget_query, args)
+
+
+def get_participants() -> t.List[participant]:
+    results = database.execute_select_query(list_participants_query)
+    participants = [participant(**r) for r in results]
+
+    return participants
+
+
+def get_participant_by_id(participant_id: int) -> participant:
+    query = list_participants_query + "WHERE p.participant_id = :participant_id LIMIT 1"
+    args = {"participant_id": participant_id}
+    results = database.execute_select_query(query, args)
+    if not results:
+        return None
+
+    participant_instance = participant(**results[0])
+    return participant_instance
+
+
+def create_participant(name: str, budget: int) -> None:
+    args = {"name": name, "budget": budget}
+    participant_id = database.execute_query(insert_participant_query, args)
+    return participant_id
+
+
+def update_participant(name: str, budget: int) -> None:
+    args = {"name": name, "budget": budget}
+    participant_id = database.execute_query(update_participant_query, args)
+    return participant_id
