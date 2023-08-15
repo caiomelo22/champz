@@ -23,7 +23,7 @@ def upgrade():
         sa.Column(
             "participant_id",
             sa.Integer,
-            sa.ForeignKey("participant.id", ondelete="SET NULL", onupdate="CASCADE"),
+            sa.ForeignKey("participant.id", ondelete="CASCADE", onupdate="CASCADE"),
             nullable=True,
         ),
     )
@@ -34,7 +34,7 @@ def upgrade():
         sa.Column(
             "team_participant_id",
             sa.Integer,
-            sa.ForeignKey("team.id", ondelete="SET NULL", onupdate="CASCADE"),
+            sa.ForeignKey("team.id", ondelete="CASCADE", onupdate="CASCADE"),
             nullable=True,
         ),
     )
@@ -48,7 +48,9 @@ def downgrade():
     op.drop_column("player", "value")
 
     # Remove the team_participant_id and team_origin_id columns from the player table
+    op.drop_constraint("player_ibfk_1", "player", type_="foreignkey")
     op.drop_column("player", "team_participant_id")
 
     # Remove the participant_id column from the team table
+    op.drop_constraint("team_ibfk_1", "team", type_="foreignkey")
     op.drop_column("team", "participant_id")

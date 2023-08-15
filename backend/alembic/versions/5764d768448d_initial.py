@@ -20,7 +20,7 @@ def upgrade():
     # Create the participant table
     op.create_table(
         "participant",
-        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("name", sa.String(50), nullable=False),
         sa.Column("budget", sa.Integer, nullable=False),
     )
@@ -28,7 +28,7 @@ def upgrade():
     # Create the group table
     op.create_table(
         "group",
-        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("name", sa.String(100), nullable=False),
         sa.Column("previous_stage", sa.Integer, nullable=True),
     )
@@ -36,7 +36,7 @@ def upgrade():
     # Create the group_participant table
     op.create_table(
         "group_participant",
-        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id"), nullable=False),
         sa.Column(
             "participant_id",
@@ -49,7 +49,7 @@ def upgrade():
     # Create the match table
     op.create_table(
         "match",
-        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id"), nullable=True),
         sa.Column(
             "participant_1_id",
