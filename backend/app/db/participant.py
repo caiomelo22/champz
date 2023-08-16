@@ -4,6 +4,7 @@ from fastapi import HTTPException
 
 from app.models.participant import participant
 from app.queries.participants import (change_participant_budget_query,
+                                      delete_participant_query,
                                       get_participant_budget_query,
                                       insert_participant_query,
                                       list_participants_query,
@@ -69,5 +70,9 @@ def create_participant(name: str, budget: int) -> None:
 
 def update_participant(name: str, budget: int) -> None:
     args = {"name": name, "budget": budget}
-    participant_id = database.execute_query(update_participant_query, args)
-    return participant_id
+    database.execute_query(update_participant_query, args)
+
+
+def delete_participant(participant_id: int) -> None:
+    args = {"participant_id": participant_id}
+    database.execute_query(delete_participant_query, args)

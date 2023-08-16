@@ -33,3 +33,13 @@ change_players_team_query = """
     SET team_participant_id = :new_team_id
     WHERE team_participant_id = :old_team_id;
 """
+
+reset_players_team_by_participant_id_query = """
+    UPDATE `fifa-db`.player p
+        INNER JOIN `fifa-db`.team t
+            ON t.id = p.team_participant_id
+        INNER JOIN `fifa-db`.participant part
+            ON t.participant_id = part.id
+    SET p.team_participant_id = null, p.value = null
+    WHERE part.id = :participant_id;
+"""

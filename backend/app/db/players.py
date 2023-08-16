@@ -4,7 +4,8 @@ import typing as t
 
 from app.models.player import player
 from app.queries.players import (buy_player_query, change_players_team_query,
-                                 player_exists_by_id_query, players_query)
+                                 player_exists_by_id_query, players_query,
+                                 reset_players_team_by_participant_id_query)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
@@ -61,3 +62,10 @@ def change_players_team(new_team_id: int, old_team_id: int) -> None:
         "old_team_id": old_team_id,
     }
     database.execute_query(change_players_team_query, args)
+
+
+def reset_players_team_by_participant_id(participant_id: int) -> None:
+    args = {
+        "participant_id": participant_id,
+    }
+    database.execute_query(reset_players_team_by_participant_id_query, args)

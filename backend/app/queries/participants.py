@@ -39,3 +39,8 @@ update_participant_query = """
     SET budget = :budget, name = :name
     WHERE id = :participant_id;
 """
+
+delete_participant_query = """
+    DELETE FROM `fifa-db`.participant
+    WHERE id = :participant_id;
+"""
