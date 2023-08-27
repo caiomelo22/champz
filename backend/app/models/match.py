@@ -13,3 +13,15 @@ class match(BaseModel):
     participant_2_team_image_path: str
     goals_1: int
     goals_2: int
+
+
+class create_match_model(BaseModel):
+    group_id: int
+    participant_1_id: int
+    participant_2_id: int
+
+
+class update_match_model(BaseModel):
+    match_id: int
+    goals_1: int
+    goals_2: int
