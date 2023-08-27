@@ -30,7 +30,6 @@ def upgrade():
         "group",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("name", sa.String(100), nullable=False),
-        sa.Column("previous_stage", sa.Integer, nullable=True),
     )
 
     # Create the group_participant table
