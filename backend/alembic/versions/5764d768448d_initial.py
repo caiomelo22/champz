@@ -65,6 +65,7 @@ def upgrade():
         ),
         sa.Column("goals_1", sa.Integer, nullable=True),
         sa.Column("goals_2", sa.Integer, nullable=True),
+        sa.Column("round", sa.String(100), nullable=True),
     )
 
 
