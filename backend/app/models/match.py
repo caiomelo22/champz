@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -19,6 +21,7 @@ class create_match_model(BaseModel):
     group_id: int
     participant_1_id: int
     participant_2_id: int
+    round: Optional[str] = None
 
 
 class update_match_model(BaseModel):

@@ -23,8 +23,8 @@ get_matches_query = """
 """
 
 create_match_query = """
-    INSERT INTO `fifa-db`.match (group_id, participant_1_id, participant_2_id)
-    VALUES (:group_id, :participant_1_id, :participant_2_id)
+    INSERT INTO `fifa-db`.match (group_id, participant_1_id, participant_2_id, round)
+    VALUES (:group_id, :participant_1_id, :participant_2_id, :round)
 """
 
 update_match_query = """

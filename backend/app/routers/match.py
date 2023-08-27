@@ -42,20 +42,6 @@ def create(data: create_match_model) -> match:
     return get_match_by_id(match_id)
 
 
-@router.post("/create")
-def create(data: create_match_model) -> match:
-    group_exists = check_group_exists(data.group_id)
-    if not group_exists:
-        raise HTTPException(status_code=404, detail="Group not found.")
-
-    validate_participant(data.participant_1_id, "1")
-    validate_participant(data.participant_2_id, "2")
-
-    match_id = create_match(data)
-
-    return get_match_by_id(match_id)
-
-
 @router.post("/update")
 def create(data: update_match_model) -> None:
     match_exists = check_match_exists(data.match_id)
