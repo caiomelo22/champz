@@ -31,6 +31,7 @@ def create_match(data: create_match_model) -> int:
         "group_id": data.group_id,
         "participant_1_id": data.participant_1_id,
         "participant_2_id": data.participant_2_id,
+        "round": data.round,
     }
     match_id = database.execute_query(create_match_query, args)
     return match_id
