@@ -18,14 +18,14 @@ num_participants_query = """
 
 change_participant_budget_query = """
     UPDATE `fifa-db`.participant
-    SET budget = budget + :value
-    WHERE id = :participant_id;
+    SET budget = budget + %s
+    WHERE id = %s;
 """
 
 get_participant_budget_query = """
     SELECT budget
     FROM `fifa-db`.participant
-    WHERE id = :participant_id
+    WHERE id = %s
     LIMIT 1
 """
 

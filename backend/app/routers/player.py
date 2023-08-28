@@ -32,7 +32,7 @@ def list(
 def buy(
     player_id: str,
     data: buy_player_model,
-) -> t.List[player]:
+) -> None:
     player_instance = get_player_by_id(player_id)
     if not player_instance:
         raise HTTPException(status_code=404, detail="Player not found.")
@@ -46,5 +46,5 @@ def buy(
         return True
 
     participant_id = get_participant_id_by_team_id(data.team_participant)
-    update_participant_budget(participant_id, data.value)
+    update_participant_budget(participant_id, -data.value)
     buy_player(player_id, data.team_participant, data.value)

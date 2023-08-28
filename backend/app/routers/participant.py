@@ -1,10 +1,10 @@
 import typing as t
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
 from app.db.participant import (create_participant, delete_participant,
                                 get_participant_by_id, get_participants,
-                                get_participants_num, update_participant)
+                                update_participant)
 from app.db.players import (change_players_team,
                             reset_players_team_by_participant_id)
 from app.db.team import add_participant_to_team, get_participant_id_by_team_id

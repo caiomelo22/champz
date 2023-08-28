@@ -24,7 +24,7 @@ def get_players(where_clauses: t.List[str], limit_clause: str = "") -> t.List[pl
 
 
 def get_player_by_id(player_id: str) -> player:
-    where_clause = f" WHERE id = '{player_id}'"
+    where_clause = f" WHERE player.id = '{player_id}'"
     limit_clause = " LIMIT 1"
     query = players_query + where_clause + limit_clause
     results = database.execute_select_query(query)
@@ -48,11 +48,11 @@ def buy_player(
     team_participant_id: t.Optional[int] = None,
     value: t.Optional[int] = None,
 ) -> None:
-    args = {
-        "player_id": player_id,
-        "team_participant_id": team_participant_id,
-        "value": value,
-    }
+    args = (
+        team_participant_id,
+        value,
+        player_id,
+    )
     database.execute_query(buy_player_query, args)
 
 

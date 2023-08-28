@@ -25,7 +25,7 @@ def get_participants_num(participant_id: int = None) -> int:
 
 
 def get_participant_budget(participant_id: int) -> int:
-    args = {"participant_id": participant_id}
+    args = (participant_id,)
     results = database.execute_select_query(get_participant_budget_query, args)
     if not results:
         raise HTTPException(status_code=404, detail="Participant not found")
@@ -40,7 +40,10 @@ def update_participant_budget(participant_id: int, value: int) -> None:
             status_code=400, detail="Participant does not have enough budget"
         )
 
-    args = {"participant_id": participant_id, "value": value}
+    args = (
+        value,
+        participant_id,
+    )
     database.execute_query(change_participant_budget_query, args)
 
 

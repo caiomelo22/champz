@@ -24,8 +24,8 @@ player_exists_by_id_query = """
 
 buy_player_query = """
     UPDATE `fifa-db`.player
-    SET value = :value, team_participant_id = :team_participant_id
-    WHERE id = :player_id;
+    SET team_participant_id = %s, value = %s
+    WHERE id = %s;
 """
 
 change_players_team_query = """
