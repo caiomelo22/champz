@@ -52,9 +52,8 @@ def get_participants() -> t.List[participant]:
 
 
 def get_participant_by_id(participant_id: int) -> participant:
-    query = list_participants_query + "WHERE p.participant_id = :participant_id LIMIT 1"
-    args = {"participant_id": participant_id}
-    results = database.execute_select_query(query, args)
+    query = list_participants_query + f" WHERE p.id = {participant_id} LIMIT 1"
+    results = database.execute_select_query(query)
     if not results:
         return None
 
@@ -63,16 +62,23 @@ def get_participant_by_id(participant_id: int) -> participant:
 
 
 def create_participant(name: str, budget: int) -> None:
-    args = {"name": name, "budget": budget}
+    args = (
+        name,
+        budget,
+    )
     participant_id = database.execute_query(insert_participant_query, args)
     return participant_id
 
 
-def update_participant(name: str, budget: int) -> None:
-    args = {"name": name, "budget": budget}
+def update_participant(name: str, budget: int, participant_id: int) -> None:
+    args = (
+        name,
+        budget,
+        participant_id,
+    )
     database.execute_query(update_participant_query, args)
 
 
 def delete_participant(participant_id: int) -> None:
-    args = {"participant_id": participant_id}
+    args = (participant_id,)
     database.execute_query(delete_participant_query, args)

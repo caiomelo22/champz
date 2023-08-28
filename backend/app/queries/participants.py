@@ -31,16 +31,16 @@ get_participant_budget_query = """
 
 insert_participant_query = """
     INSERT INTO `fifa-db`.participant (name, budget)
-    VALUES (:name, :budget);
+    VALUES (%s, %s);
 """
 
 update_participant_query = """
     UPDATE `fifa-db`.participant
-    SET budget = :budget, name = :name
-    WHERE id = :participant_id;
+    SET name = %s, budget = %s
+    WHERE id = %s;
 """
 
 delete_participant_query = """
     DELETE FROM `fifa-db`.participant
-    WHERE id = :participant_id;
+    WHERE id = %s;
 """

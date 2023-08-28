@@ -57,15 +57,13 @@ def buy_player(
 
 
 def change_players_team(new_team_id: int, old_team_id: int) -> None:
-    args = {
-        "new_team_id": new_team_id,
-        "old_team_id": old_team_id,
-    }
+    args = (
+        new_team_id,
+        old_team_id,
+    )
     database.execute_query(change_players_team_query, args)
 
 
 def reset_players_team_by_participant_id(participant_id: int) -> None:
-    args = {
-        "participant_id": participant_id,
-    }
+    args = (participant_id,)
     database.execute_query(reset_players_team_by_participant_id_query, args)

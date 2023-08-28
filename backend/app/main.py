@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from app.routers import participant, player, position, team, match, group
+from app.routers import group, match, participant, player, position, team
 
 app = FastAPI()
 

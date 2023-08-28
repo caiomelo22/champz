@@ -23,7 +23,7 @@ def upgrade():
         sa.Column(
             "participant_id",
             sa.Integer,
-            sa.ForeignKey("participant.id", ondelete="CASCADE", onupdate="CASCADE"),
+            sa.ForeignKey("participant.id", ondelete="SET NULL"),
             nullable=True,
         ),
     )
@@ -34,7 +34,7 @@ def upgrade():
         sa.Column(
             "team_participant_id",
             sa.Integer,
-            sa.ForeignKey("team.id", ondelete="CASCADE", onupdate="CASCADE"),
+            sa.ForeignKey("team.id", ondelete="SET NULL"),
             nullable=True,
         ),
     )

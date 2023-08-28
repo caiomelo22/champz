@@ -30,8 +30,8 @@ buy_player_query = """
 
 change_players_team_query = """
     UPDATE `fifa-db`.player
-    SET team_participant_id = :new_team_id
-    WHERE team_participant_id = :old_team_id;
+    SET team_participant_id = %s
+    WHERE team_participant_id = %s;
 """
 
 reset_players_team_by_participant_id_query = """
@@ -41,5 +41,5 @@ reset_players_team_by_participant_id_query = """
         INNER JOIN `fifa-db`.participant part
             ON t.participant_id = part.id
     SET p.team_participant_id = null, p.value = null
-    WHERE part.id = :participant_id;
+    WHERE part.id = %s;
 """

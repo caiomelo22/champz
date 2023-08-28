@@ -26,13 +26,12 @@ def create(data: manage_participant_model) -> participant:
             status_code=400,
             detail="The chosen team has already been assigned to another participant.",
         )
-
     participant_id = create_participant(data.name, data.budget)
     add_participant_to_team(participant_id, data.team)
     return get_participant_by_id(participant_id)
 
 
-@router.put("/update/{participant_id}")
+@router.patch("/update/{participant_id}")
 def create(participant_id: int, data: manage_participant_model) -> participant:
     participant_instance = get_participant_by_id(participant_id)
     if not participant_instance:
@@ -59,13 +58,13 @@ def create(participant_id: int, data: manage_participant_model) -> participant:
         add_participant_to_team(participant_id, data.team)
 
     # Updating name and budget fields
-    update_participant(data.name, data.budget)
+    update_participant(data.name, data.budget, participant_id)
 
     return get_participant_by_id(participant_id)
 
 
 @router.delete("/delete/{participant_id}")
-def delete(participant_id: int) -> bool:
+def delete(participant_id: int) -> None:
     participant_instance = get_participant_by_id(participant_id)
     if not participant_instance:
         raise HTTPException(
