@@ -13,8 +13,8 @@ class match(BaseModel):
     participant_2_name: str
     participant_2_team_name: str
     participant_2_team_image_path: str
-    goals_1: int
-    goals_2: int
+    goals_1: Optional[int]
+    goals_2: Optional[int]
     round: Optional[int] = None
     penalties: Optional[bool] = False
 

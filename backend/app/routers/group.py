@@ -4,7 +4,8 @@ from random import shuffle
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.db.group import (check_group_exists, create_group, get_group,
+from app.db.group import (add_participant_to_group, check_group_exists,
+                          create_group, delete_group, get_group,
                           get_group_table)
 from app.db.match import (create_matches, delete_matches_by_round_and_above,
                           list_matches_by_group_and_round)
@@ -21,6 +22,9 @@ def create(data: create_group_model) -> int:
     group_id = create_group(data.name)
 
     participants_list = data.participants
+
+    for p in participants_list:
+        add_participant_to_group(group_id=group_id, participant_id=p)
 
     shuffle(participants_list)
 
@@ -53,6 +57,8 @@ def create(data: generate_knockout_model) -> None:
     group_exists = check_group_exists(data.group_id)
     if not group_exists:
         raise HTTPException(status_code=404, detail="Group not found.")
+    if data.previous_round == 1:
+        return
 
     group_table = get_group_table(data.group_id)
 
@@ -64,16 +70,9 @@ def create(data: generate_knockout_model) -> None:
         round_matches = list_matches_by_group_and_round(
             group_id=data.group_id, round=data.previous_round
         )
-        if len(round_matches) == 1:
-            return
 
-        num_knockout_matches = round_matches / 2
+        num_knockout_matches = len(round_matches) // 2
         num_qualified_players = num_knockout_matches * 2
-
-        # Delete legacy matches from current round and beyond
-        delete_matches_by_round_and_above(
-            group_id=data.group_id, round=num_knockout_matches
-        )
 
         # Filter table by only the winner of the current round
         winners_ids = [
@@ -81,6 +80,11 @@ def create(data: generate_knockout_model) -> None:
             for m in round_matches
         ]
         group_table = [p for p in group_table if p.participant_id in winners_ids]
+
+    # Delete legacy matches from current round and beyond
+    delete_matches_by_round_and_above(
+        group_id=data.group_id, round=num_knockout_matches
+    )
 
     # Create matches that puts the best participants against the worst qualified
     matches_to_create = []
@@ -105,8 +109,10 @@ def create() -> group:
     return group_instance
 
 
-@router.get("/group/{group_id}/matches")
-def list(group_id: int, round: int = Query(None, description="Round")) -> t.List[match]:
+@router.get("/matches/{group_id}")
+def list_groups(
+    group_id: int, round: int = Query(None, description="Round")
+) -> t.List[match]:
     group_exists = check_group_exists(group_id)
     if not group_exists:
         raise HTTPException(status_code=404, detail="Group not found.")
@@ -123,3 +129,12 @@ def get_table(group_id: int) -> t.List[group_table_participant]:
     group_table = get_group_table(group_id)
 
     return group_table
+
+
+@router.delete("/delete/{group_id}")
+def create(group_id: int) -> None:
+    group_exists = check_group_exists(group_id)
+    if not group_exists:
+        raise HTTPException(status_code=404, detail="Group not found.")
+
+    delete_group(group_id=group_id)
