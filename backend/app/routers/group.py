@@ -11,7 +11,7 @@ from app.db.match import (create_matches, delete_matches_by_round_and_above,
 from app.models.group import (create_group_model, generate_knockout_model,
                               group, group_table_participant)
 from app.models.match import create_match_model, match
-from app.utils.helper import get_knockout_info, get_knockout_round_name
+from app.utils.helper import get_knockout_info
 
 router = APIRouter()
 
