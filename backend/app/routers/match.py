@@ -2,11 +2,7 @@ import typing as t
 
 from fastapi import APIRouter, HTTPException
 
-from app.db.match import (
-    check_match_exists,
-    create_matches,
-    update_match,
-)
+from app.db.match import check_match_exists, create_matches, update_match
 from app.models.match import create_match_model, match, update_match_model
 
 router = APIRouter()

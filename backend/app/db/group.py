@@ -1,12 +1,8 @@
 import typing as t
 
-from app.queries.group import (
-    group_exists_query,
-    create_group_query,
-    get_group_table_query,
-    get_group_query
-)
-from app.models.group import group_table_participant, group
+from app.models.group import group, group_table_participant
+from app.queries.group import (create_group_query, get_group_query,
+                               get_group_table_query, group_exists_query)
 from database.db import Database
 
 database = Database()
@@ -38,7 +34,7 @@ def get_group_table(group_id: int) -> t.List[group_table_participant]:
 
     if not results:
         return []
-    
+
     group_table = [group_table_participant(**r) for r in results]
 
     return group_table

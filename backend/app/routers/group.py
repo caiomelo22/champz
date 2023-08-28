@@ -1,14 +1,17 @@
+import math
 import typing as t
 from random import shuffle
-import math
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.utils.helper import get_knockout_round_name, get_knockout_info
-from app.db.group import create_group, check_group_exists, get_group_table, get_group
-from app.db.match import list_matches_by_group_and_round, create_matches, delete_matches_by_round_and_above
-from app.models.match import match, create_match_model
-from app.models.group import group_table_participant, group, create_group_model, generate_knockout_model
+from app.db.group import (check_group_exists, create_group, get_group,
+                          get_group_table)
+from app.db.match import (create_matches, delete_matches_by_round_and_above,
+                          list_matches_by_group_and_round)
+from app.models.group import (create_group_model, generate_knockout_model,
+                              group, group_table_participant)
+from app.models.match import create_match_model, match
+from app.utils.helper import get_knockout_info, get_knockout_round_name
 
 router = APIRouter()
 
@@ -16,7 +19,7 @@ router = APIRouter()
 @router.post("/create")
 def create(data: create_group_model) -> int:
     group_id = create_group(data.name)
-    
+
     participants_list = data.participants
 
     shuffle(participants_list)
@@ -24,13 +27,19 @@ def create(data: create_group_model) -> int:
     matches = []
 
     # Build the group matches based on the shuffled participants list
-    half = math.floor(len(participants_list)/2)
+    half = math.floor(len(participants_list) / 2)
     first_half = participants_list[:half]
     second_half = participants_list[half:]
 
     for _ in range(len(participants_list)):
         for j in range(len(first_half)):
-            matches.append(create_match_model(group_id=group_id, participant_1_id=first_half[j], participant_2_id=list(reversed(second_half))[j]))
+            matches.append(
+                create_match_model(
+                    group_id=group_id,
+                    participant_1_id=first_half[j],
+                    participant_2_id=list(reversed(second_half))[j],
+                )
+            )
         first_half.append(second_half.pop(0))
         second_half.append(first_half.pop(0))
 
@@ -38,45 +47,56 @@ def create(data: create_group_model) -> int:
 
     return group_id
 
+
 @router.post("/generate-knockout")
 def create(data: generate_knockout_model) -> None:
     group_exists = check_group_exists(data.group_id)
     if not group_exists:
         raise HTTPException(status_code=404, detail="Group not found.")
-    
+
     group_table = get_group_table(data.group_id)
 
     if not data.previous_round:
-        num_qualified_players, num_knockout_matches = get_knockout_info(len(group_table))
+        num_qualified_players, num_knockout_matches = get_knockout_info(
+            len(group_table)
+        )
     else:
-        round_matches = list_matches_by_group_and_round(group_id=data.group_id, round=data.previous_round)
+        round_matches = list_matches_by_group_and_round(
+            group_id=data.group_id, round=data.previous_round
+        )
         if len(round_matches) == 1:
             return
-        
+
         num_knockout_matches = round_matches / 2
         num_qualified_players = num_knockout_matches * 2
 
         # Delete legacy matches from current round and beyond
-        delete_matches_by_round_and_above(group_id=data.group_id, round=num_knockout_matches)
+        delete_matches_by_round_and_above(
+            group_id=data.group_id, round=num_knockout_matches
+        )
 
         # Filter table by only the winner of the current round
-        winners_ids = [m.participant_1_id if m.goals_1 > m.goals_2 else m.participant_2_id for m in round_matches]
+        winners_ids = [
+            m.participant_1_id if m.goals_1 > m.goals_2 else m.participant_2_id
+            for m in round_matches
+        ]
         group_table = [p for p in group_table if p.participant_id in winners_ids]
 
     # Create matches that puts the best participants against the worst qualified
     matches_to_create = []
     for i in range(num_knockout_matches):
         participant_1 = group_table[i].participant_id
-        participant_2 = group_table[num_qualified_players-i-1].participant_id
+        participant_2 = group_table[num_qualified_players - i - 1].participant_id
         match_instance = create_match_model(
             group_id=data.group_id,
             participant_1_id=participant_1,
             participant_2_id=participant_2,
-            round=num_knockout_matches
+            round=num_knockout_matches,
         )
         matches_to_create.append(match_instance)
 
     create_matches(matches_to_create)
+
 
 @router.get("/get")
 def create() -> group:

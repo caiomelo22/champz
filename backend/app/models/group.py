@@ -10,13 +10,16 @@ class group(BaseModel):
     id: int
     name: str
 
+
 class create_group_model(BaseModel):
     name: str
     participants: t.List[int]
 
+
 class generate_knockout_model(BaseModel):
     group_id: int
     previous_round: t.Optional[int] = None
+
 
 class group_table_participant(BaseModel):
     group_id: int

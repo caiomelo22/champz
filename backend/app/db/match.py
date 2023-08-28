@@ -1,8 +1,10 @@
 import typing as t
 
 from app.models.match import create_match_model, match, update_match_model
-from app.queries.match import (create_matches_query, get_matches_query,
-                               match_exists_query, update_match_query, delete_matches_from_round_and_above_query)
+from app.queries.match import (create_matches_query,
+                               delete_matches_from_round_and_above_query,
+                               get_matches_query, match_exists_query,
+                               update_match_query)
 from database.db import Database
 
 database = Database()
@@ -32,15 +34,13 @@ def create_matches(data: t.List[create_match_model]) -> None:
         match_str = "("
 
         match_dict = m.dict()
-        match_str = ', '.join(match_dict.values())
+        match_str = ", ".join(match_dict.values())
 
         match_str += ")"
 
         matches_values.append(match_str)
 
-    args = {
-        "matches": ', '.join(matches_values)
-    }
+    args = {"matches": ", ".join(matches_values)}
     database.execute_query(create_matches_query, args)
 
 
@@ -60,9 +60,7 @@ def check_match_exists(match_id: int) -> bool:
 
     return len(results) > 0 and results[0]["num_matches"] > 0
 
+
 def delete_matches_by_round_and_above(group_id: int, round: int) -> None:
-    args = {
-        "group_id": group_id,
-        "round": round
-    }
+    args = {"group_id": group_id, "round": round}
     database.execute_query(delete_matches_from_round_and_above_query, args)
