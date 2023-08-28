@@ -36,11 +36,11 @@ def upgrade():
     op.create_table(
         "group_participant",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id"), nullable=False),
+        sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id", ondelete="CASCADE"), nullable=False),
         sa.Column(
             "participant_id",
             sa.Integer,
-            sa.ForeignKey("participant.id"),
+            sa.ForeignKey("participant.id", ondelete="CASCADE"),
             nullable=False,
         ),
     )
@@ -49,22 +49,23 @@ def upgrade():
     op.create_table(
         "match",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id"), nullable=True),
+        sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id", ondelete="CASCADE"), nullable=True),
         sa.Column(
             "participant_1_id",
             sa.Integer,
-            sa.ForeignKey("participant.id"),
+            sa.ForeignKey("participant.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
             "participant_2_id",
             sa.Integer,
-            sa.ForeignKey("participant.id"),
+            sa.ForeignKey("participant.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("goals_1", sa.Integer, nullable=True),
         sa.Column("goals_2", sa.Integer, nullable=True),
-        sa.Column("round", sa.String(100), nullable=True),
+        sa.Column("round", sa.Integer, nullable=True),
+        sa.Column("penalties", sa.Boolean, nullable=True),
     )
 
 

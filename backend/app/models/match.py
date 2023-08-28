@@ -15,16 +15,19 @@ class match(BaseModel):
     participant_2_team_image_path: str
     goals_1: int
     goals_2: int
+    round: Optional[int] = None
+    penalties: Optional[bool] = False
 
 
 class create_match_model(BaseModel):
     group_id: int
     participant_1_id: int
     participant_2_id: int
-    round: Optional[str] = None
+    round: Optional[int] = None
 
 
 class update_match_model(BaseModel):
     match_id: int
     goals_1: int
     goals_2: int
+    penalties: Optional[bool] = False

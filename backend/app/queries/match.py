@@ -10,7 +10,9 @@ get_matches_query = """
         t2.name as participant_2_team_name,
         t2.image_path as participant_2_team_image_path,
         m.goals_1,
-        m.goals_2
+        m.goals_2,
+        m.round,
+        m.penalties,
     FROM `fifa-db`.match
         INNER JOIN `fifa-db`.team t1
             ON m.participant_1_id = t1.participant_id
@@ -22,14 +24,14 @@ get_matches_query = """
             ON m.participant_2_id = p2.id
 """
 
-create_match_query = """
+create_matches_query = """
     INSERT INTO `fifa-db`.match (group_id, participant_1_id, participant_2_id, round)
-    VALUES (:group_id, :participant_1_id, :participant_2_id, :round)
+    VALUES (:matches)
 """
 
 update_match_query = """
     UPDATE `fifa-db`.match 
-    SET goals_1 = :goals_1, goals_2 = :goals_2
+    SET goals_1 = :goals_1, goals_2 = :goals_2, penalties = :penalties
     WHERE id = :match_id
 """
 
@@ -38,4 +40,10 @@ match_exists_query = """
     FROM `fifa-db`.match
     WHERE id = :match_id
     LIMIT 1
+"""
+
+delete_matches_from_round_and_above_query = """
+    DELETE
+    FROM `fifa-db`.match
+    WHERE group_id = :group_id AND round >= :round
 """
