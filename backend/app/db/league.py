@@ -7,7 +7,7 @@ database = Database()
 
 
 def check_league_exists(league_id: int) -> bool:
-    args = {"league_id": league_id}
+    args = (league_id,)
     results = database.execute_select_query(league_exists_query, args)
 
     return len(results) > 0 and results[0]["num_leagues"] > 0

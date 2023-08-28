@@ -27,7 +27,7 @@ def get_participant_id_by_team_id(team_id: int) -> int:
 
 
 def get_teams_by_league(league_id: int) -> t.List[team]:
-    args = {"league_id": league_id}
+    args = (league_id,)
     results = database.execute_select_query(get_teams_by_league_query, args)
 
     teams = [team(**r) for r in results]

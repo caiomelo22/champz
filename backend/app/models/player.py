@@ -30,7 +30,7 @@ class player(BaseModel):
     defending: int
     physical: int
     image_path: str
-    value: int
+    value: t.Optional[int] = None
 
 
 class buy_player_model(BaseModel):

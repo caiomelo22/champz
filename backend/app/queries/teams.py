@@ -23,5 +23,5 @@ get_teams_by_league_query = """
     FROM `fifa-db`.team t
         LEFT JOIN `fifa-db`.league l
             ON t.league_id = l.id
-    WHERE t.league_id = :league_id
+    WHERE t.league_id = %s
 """

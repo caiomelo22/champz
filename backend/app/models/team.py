@@ -1,3 +1,5 @@
+import typing as t
+
 from pydantic import BaseModel
 
 
@@ -7,4 +9,4 @@ class team(BaseModel):
     league_name: str
     league_image_path: str
     image_path: str
-    participant_id: int
+    participant_id: t.Optional[int]

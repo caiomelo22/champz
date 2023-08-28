@@ -15,7 +15,7 @@ from database.db import Database
 database = Database()  # Initialize the custom database instance
 
 
-def get_participants_num(participant_id: int) -> int:
+def get_participants_num(participant_id: int = None) -> int:
     query = num_participants_query
     if participant_id:
         query += f" WHERE id = {participant_id}"
