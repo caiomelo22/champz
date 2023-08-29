@@ -22,7 +22,7 @@ def list(
         where_clauses.append(f"position_id = {position}")
         participants_number = get_participants_num()
         if participants_number:
-            limit_clause = f"LIMIT {participants_number * 3}"
+            limit_clause = f" LIMIT {participants_number * 3}"
     if team_participant:
         where_clauses.append(f"team_participant_id = {team_participant}")
     return get_players(where_clauses, limit_clause)
@@ -32,7 +32,7 @@ def list(
 def buy(
     player_id: str,
     data: buy_player_model,
-) -> None:
+) -> player:
     player_instance = get_player_by_id(player_id)
     if not player_instance:
         raise HTTPException(status_code=404, detail="Player not found.")
@@ -43,8 +43,13 @@ def buy(
         buy_player(player_id)
 
     if not data.team_participant:
-        return True
+        return get_player_by_id(player_id)
+
+    if not data.value:
+        raise HTTPException(status_code=400, detail="Player value not valid")
 
     participant_id = get_participant_id_by_team_id(data.team_participant)
     update_participant_budget(participant_id, -data.value)
     buy_player(player_id, data.team_participant, data.value)
+
+    return get_player_by_id(player_id)

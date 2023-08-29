@@ -36,8 +36,8 @@ def create_matches(data: t.List[create_match_model]) -> None:
         database.execute_query(create_matches_query, tuple(match_dict.values()))
 
 
-def update_match(data: update_match_model) -> None:
-    args = (data.goals_1, data.goals_2, data.penalties, data.match_id)
+def update_match(match_id: int, data: update_match_model) -> None:
+    args = (data.goals_1, data.goals_2, data.penalties, match_id)
     database.execute_query(update_match_query, args)
 
 

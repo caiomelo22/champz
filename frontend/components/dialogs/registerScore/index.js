@@ -13,7 +13,7 @@ export default {
   methods: {
     async register_score() {
       this.registerScoreLoading = true;
-      let url = `match/${this.match.id}`;
+      let url = `match/update/${this.match.id}`;
       await this.$axios.patch(url, this.match)
       this.$emit('update', this.match)
       this.registerScoreLoading = false;

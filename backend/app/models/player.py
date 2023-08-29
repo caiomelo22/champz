@@ -34,5 +34,5 @@ class player(BaseModel):
 
 
 class buy_player_model(BaseModel):
-    team_participant: t.Optional[int]
-    value: int
+    team_participant: t.Optional[int] = None
+    value: t.Optional[int] = None

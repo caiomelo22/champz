@@ -2,6 +2,7 @@ export default {
   name: 'AddParticipantDialog',
   data: () => ({
     updatingParticipant: false,
+    selectedTeam: null,
     participant: null,
   }),
   props: {
@@ -17,10 +18,10 @@ export default {
   methods: {
     async add_participant () {
       this.updatingParticipant = true;
-      this.participant.team = this.participant.team.id;
+      this.participant.team = this.selectedTeam.id;
       if (!this.participant.id) {
         await this.$axios
-          .post("participant", this.participant)
+          .post("participant/create", this.participant)
           .then((response) => {
             this.$emit('update', response.data)
           })
@@ -28,7 +29,7 @@ export default {
       } else {
         await this.$axios
           .patch(
-            `participant/${this.participant.id}`,
+            `participant/update/${this.participant.id}`,
             this.participant
           )
           .then((response) => {

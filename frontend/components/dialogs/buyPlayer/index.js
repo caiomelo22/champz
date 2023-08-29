@@ -17,8 +17,8 @@ export default {
   methods: {
     async buy_player() {
       this.updatingPlayer = true;
-      this.player.team_participant = this.player.team_participant.id;
-      let url = `buy/${this.currentPlayer.id}`;
+      this.player.team_participant = this.player.team_participant_id;
+      let url = `player/buy/${this.currentPlayer.id}`;
       await this.$axios
         .post(url, this.player)
         .then((response) => {

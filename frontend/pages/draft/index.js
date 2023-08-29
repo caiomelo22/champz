@@ -67,14 +67,18 @@ export default {
         this.addParticipantDialog = false;
         this.get_players_by_position_algorithm(this.positions[this.tab].id);
       }
-      const plTeamIndex = this.plTeams.map(x => x.id).indexOf(participant.team.id)
+      const plTeamIndex = this.plTeams.map(x => x.id).indexOf(participant.team_id)
       this.plTeams[plTeamIndex].participant = participant.id
     },
     get_participant_name(id) {
       if (!id) {
         return null;
       }
-      return this.participants.filter(x => x.id == id)[0].name;
+      let participants_filtered = this.participants.filter(x => x.id == id);
+      if (!participants_filtered.length) {
+        return null
+      }
+      return participants_filtered[0].name;
     },
     open_participant_dialog(participant) {
       if (!participant) {
@@ -87,7 +91,7 @@ export default {
     async get_participants() {
       this.participantsLoading = true;
       await this.$axios
-        .get("participant")
+        .get("participant/list")
         .then((response) => {
           this.participants = response.data;
         });
@@ -96,7 +100,7 @@ export default {
     async get_positions() {
       this.playersLoading = true;
       await this.$axios
-        .get("position")
+        .get("position/list")
         .then((response) => {
           this.positions = response.data;
           this.get_players_by_position_algorithm(this.positions[0].id);
@@ -105,7 +109,7 @@ export default {
     async get_players_by_position_algorithm(idPosition) {
       this.playersLoading = true;
       await this.$axios
-        .get(`player?position=${idPosition}`)
+        .get(`player/list?position=${idPosition}`)
         .then((response) => {
           this.selectedPosition = response.data;
         });
@@ -116,7 +120,7 @@ export default {
       let index = this.participants.map((x) => x.id).indexOf(participant.id);
       this.participants[index].team_loading_att = true;
       await this.$axios
-        .get(`player?team_participant=${idTeam}`)
+        .get(`player/list?team_participant=${idTeam}`)
         .then((response) => {
           this.selectedTeam = response.data;
         });
@@ -124,16 +128,16 @@ export default {
       this.participantTeamDialog = true;
     },
     async get_plTeams() {
-      let pl = this.leagues.filter((x) => x.name.includes("ENG 1"))[0];
+      let pl = this.leagues.filter((x) => x.name.includes("Premier League"))[0];
       await this.$axios
-        .get(`team?league=${pl.id}`)
+        .get(`team/list/league/${pl.id}`)
         .then((response) => {
           this.plTeams = response.data;
         });
     },
     async get_leagues() {
       await this.$axios
-        .get("league")
+        .get("league/list")
         .then((response) => {
           this.leagues = response.data;
         });
@@ -143,7 +147,7 @@ export default {
       this.buyPlayerDialog = true;
     },
     async delete_participant(id) {
-      let url = `participant/${id}`;
+      let url = `participant/delete/${id}`;
       let index = this.participants.map((x) => x.id).indexOf(id);
       this.participants.splice(index, 1);
       await this.$axios
@@ -155,10 +159,10 @@ export default {
     async remove_buy(player) {
       this.update_participant_budget(player, true);
       await this.$axios
-        .post(`buy/${player.id}`, { team_participant: null })
+        .post(`player/buy/${player.id}`, { team_participant: null })
         .then((response) => {
           this.update_player(response.data);
-          if (this.selectedTeam.length > 0) {
+          if (this.selectedTeam && this.selectedTeam.length > 0) {
             let index = this.selectedTeam.map((x) => x.id).indexOf(player.id);
             if (index != -1) {
               this.selectedTeam.splice(index, 1);
@@ -168,8 +172,8 @@ export default {
     },
     update_participant_budget(player, add) {
       let index = this.participants
-        .map((x) => x.team.id)
-        .indexOf(player.team_participant.id);
+        .map((x) => x.team_id)
+        .indexOf(player.team_participant_id);
       if (index != -1) {
         if (add) {
           this.participants[index].budget += player.value;
@@ -179,7 +183,8 @@ export default {
       }
     },
     update_player(player) {
-      if (this.positions[this.tab].id == player.position.id) {
+        console.log(player)
+      if (this.positions[this.tab].id == player.position_id) {
         let index = this.selectedPosition.map((x) => x.id).indexOf(player.id);
         this.selectedPosition = this.selectedPosition
           .slice(0, index)

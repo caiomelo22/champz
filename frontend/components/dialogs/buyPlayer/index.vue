@@ -17,9 +17,9 @@
                 player.specific_position
             }}</span>
             <img style="width: 60px; z-index: 2; margin: auto"
-              :src="gs.get_image_path(player.nation.image_path)" />
+              :src="gs.get_image_path(player.nation_image_path)" />
             <img style="width: 60px; z-index: 2; margin: auto" :src="
-              gs.get_image_path(player.team_origin.image_path)
+              gs.get_image_path(player.team_origin_image_path)
             " />
           </div>
           <img :src="gs.get_image_path(player.image_path)" style="
@@ -77,7 +77,7 @@
       <form v-on:submit.prevent="buy_player()">
         <v-text-field type="number" v-model="player.value" label="Value" prefix="$"></v-text-field>
         <v-combobox v-model="participantSelected" :items="participants" item-text="name" @change="
-          player.team_participant = participantSelected.team
+          player.team_participant_id = participantSelected.team_id
         " label="Participant" outlined dense></v-combobox>
         <v-card-actions style="display: flex; justify-content: flex-end">
           <v-btn color="red" dark @click="$emit('close')">Cancel</v-btn>

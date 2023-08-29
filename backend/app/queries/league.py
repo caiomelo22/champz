@@ -3,3 +3,7 @@ league_exists_query = """
     WHERE id = %s
     LIMIT 1
 """
+
+get_leagues_query = """
+    SELECT id, name, image_path FROM `fifa-db`.league;
+"""

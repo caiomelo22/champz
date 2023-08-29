@@ -47,15 +47,15 @@
                       <td class="champzFont">{{ participant.name }}</td>
                       <td class="champzFont">${{ participant.budget }}</td>
                       <td class="champzFont">
-                        <img style="width: 30px" :src="gs.get_image_path(participant.team.image_path)" />
-                        {{ participant.team.name }}
+                        <img style="width: 30px" :src="gs.get_image_path(participant.team_image_path)" />
+                        {{ participant.team_name }}
                       </td>
                       <td class="text-center">
                         <v-icon color="#3330E4" @click="open_participant_dialog(participant)">mdi-pencil</v-icon>
                         <v-icon color="#EB1D36" class="ml-2" @click="delete_participant(participant.id)">mdi-trash-can
                         </v-icon>
                         <v-icon color="#3330E4" class="ml-2" :loading="participant.team_loading_att" @click="
-                          get_players_by_team(participant, participant.team.id)
+                          get_players_by_team(participant, participant.team_id)
                         ">mdi-eye</v-icon>
                       </td>
                     </tr>
@@ -113,8 +113,8 @@
                       <td class="champzFont">{{ player.id }}</td>
                       <td class="champzFont">
                         <img :src="gs.get_image_path(player.image_path)" style="max-height: 65px" />
-                        <img style="width: 30px" :src="gs.get_image_path(player.nation.image_path)" />
-                        <img style="width: 30px" :src="gs.get_image_path(player.team_origin.image_path)" />
+                        <img style="width: 30px" :src="gs.get_image_path(player.nation_image_path)" />
+                        <img style="width: 30px" :src="gs.get_image_path(player.team_origin_image_path)" />
                       </td>
                       <td class="champzFont">
                         <span>{{ player.name }}</span>
@@ -123,9 +123,9 @@
                       <td class="champzFont">{{ player.specific_position }}</td>
                       <td class="champzFont">
                         {{
-                            player.team_participant
+                            player.team_participant_id
                               ? get_participant_name(
-                                player.team_participant.participant
+                                player.participant_id
                               )
                               : "-"
                         }}

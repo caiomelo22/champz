@@ -6,7 +6,7 @@
     <v-card-text>
       <form @submit.prevent="add_participant()">
         <v-text-field label="Name" v-model="participant.name"></v-text-field>
-        <v-combobox v-model="participant.team" :items="
+        <v-combobox v-model="selectedTeam" :items="
           plTeams.filter(
             (x) => !x.participant
           )
