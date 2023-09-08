@@ -55,7 +55,12 @@ get_group_table_query = """
             ON g.id = gp.group_id
         LEFT JOIN `fifa-db`.match m
             ON g.id = m.group_id AND (gp.participant_id = m.participant_1_id OR gp.participant_id = m.participant_2_id)
-    WHERE g.id = %s AND m.round IS NULL
+    WHERE g.id = %s AND m.round = (
+        SELECT
+            MAX(m3.round)
+        FROM `fifa-db`.match m3
+        WHERE g.id = %s
+    )
     GROUP BY group_id, participant_id
     ORDER BY points DESC, goal_difference DESC, goals_scored DESC, goals_conceded ASC;
 """

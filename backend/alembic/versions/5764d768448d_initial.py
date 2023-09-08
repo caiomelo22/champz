@@ -5,6 +5,7 @@ Revises:
 Create Date: 2023-08-02 11:03:40.215139
 
 """
+from datetime import datetime
 import sqlalchemy as sa
 
 from alembic import op
@@ -64,8 +65,10 @@ def upgrade():
         ),
         sa.Column("goals_1", sa.Integer, nullable=True),
         sa.Column("goals_2", sa.Integer, nullable=True),
-        sa.Column("round", sa.Integer, nullable=True),
+        sa.Column("round", sa.Integer, nullable=False),
         sa.Column("penalties", sa.Boolean, nullable=True),
+        sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
+        sa.Column("updated_at", sa.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow),
     )
 
 

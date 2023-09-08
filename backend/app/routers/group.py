@@ -7,7 +7,8 @@ from fastapi import APIRouter, HTTPException, Query
 from app.db.group import (add_participant_to_group, check_group_exists,
                           create_group, delete_group, get_group,
                           get_group_table)
-from app.db.match import (create_matches, delete_matches_by_round_and_above,
+from app.db.match import (check_redraw_needed, check_round_exists,
+                          create_matches, delete_matches_by_round_and_above,
                           list_matches_by_group_and_round)
 from app.models.group import (create_group_model, generate_knockout_model,
                               group, group_table_participant)
@@ -31,17 +32,20 @@ def create(data: create_group_model) -> int:
     matches = []
 
     # Build the group matches based on the shuffled participants list
-    half = math.floor(len(participants_list) / 2)
+    num_participants = len(participants_list)
+    half = math.floor(num_participants / 2)
     first_half = participants_list[:half]
     second_half = participants_list[half:]
+    n_games = (num_participants * (num_participants - 1)) / 2
 
-    for _ in range(len(participants_list)):
+    for _ in range(num_participants):
         for j in range(len(first_half)):
             matches.append(
                 create_match_model(
                     group_id=group_id,
                     participant_1_id=first_half[j],
                     participant_2_id=list(reversed(second_half))[j],
+                    round=n_games,
                 )
             )
         first_half.append(second_half.pop(0))
@@ -57,15 +61,20 @@ def create(data: generate_knockout_model) -> None:
     group_exists = check_group_exists(data.group_id)
     if not group_exists:
         raise HTTPException(status_code=404, detail="Group not found.")
+
+    round_exists = check_round_exists(data.group_id, data.previous_round)
+    if not round_exists:
+        raise HTTPException(status_code=404, detail="Round not found.")
+
     if data.previous_round == 1:
         return
 
     group_table = get_group_table(data.group_id)
+    num_participants = len(group_table)
+    n_games = (num_participants * (num_participants - 1)) / 2
 
-    if not data.previous_round:
-        num_qualified_players, num_knockout_matches = get_knockout_info(
-            len(group_table)
-        )
+    if data.previous_round == n_games:
+        num_qualified_players, num_knockout_matches = get_knockout_info(n_games)
     else:
         round_matches = list_matches_by_group_and_round(
             group_id=data.group_id, round=data.previous_round
@@ -80,6 +89,11 @@ def create(data: generate_knockout_model) -> None:
             for m in round_matches
         ]
         group_table = [p for p in group_table if p.participant_id in winners_ids]
+
+    new_round_exists = check_round_exists(data.group_id, num_knockout_matches)
+    redraw_needed = check_redraw_needed(data.group_id, data.previous_round)
+    if not redraw_needed and new_round_exists:
+        return
 
     # Delete legacy matches from current round and beyond
     delete_matches_by_round_and_above(
@@ -105,6 +119,8 @@ def create(data: generate_knockout_model) -> None:
 @router.get("/get")
 def create() -> group:
     group_instance = get_group()
+    if not group_instance:
+        raise HTTPException(status_code=404, detail="Group not found.")
 
     return group_instance
 

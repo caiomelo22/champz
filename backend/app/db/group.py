@@ -41,7 +41,10 @@ def get_group() -> group:
 
 
 def get_group_table(group_id: int) -> t.List[group_table_participant]:
-    args = (group_id,)
+    args = (
+        group_id,
+        group_id,
+    )
     results = database.execute_select_query(get_group_table_query, args)
 
     if not results:

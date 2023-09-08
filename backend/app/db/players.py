@@ -17,7 +17,6 @@ def get_players(where_clauses: t.List[str], limit_clause: str = "") -> t.List[pl
         where_clause_str = " WHERE " + " AND ".join(where_clauses)
     order_by_clause_str = " ORDER BY player.overall DESC, player.pace DESC"
     query = players_query + where_clause_str + order_by_clause_str + limit_clause
-    print(query)
     results = database.execute_select_query(query)
     players = [player(**r) for r in results]
 

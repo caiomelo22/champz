@@ -90,7 +90,7 @@ export default {
       this.currentGroupIndex = 0;
       this.resetConfirmationDialog = false;
     },
-    async get_group_stage(replace) {
+    async get_group_stage() {
       await this.$axios
         .post(`group-stage`, { replace })
         .then((response) => {
