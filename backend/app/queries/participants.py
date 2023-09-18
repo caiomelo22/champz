@@ -44,3 +44,7 @@ delete_participant_query = """
     DELETE FROM `fifa-db`.participant
     WHERE id = %s;
 """
+
+get_participants_ids_query = """
+    SELECT id FROM `fifa-db`.participant;
+"""

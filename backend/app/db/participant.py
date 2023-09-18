@@ -6,6 +6,7 @@ from app.models.participant import participant
 from app.queries.participants import (change_participant_budget_query,
                                       delete_participant_query,
                                       get_participant_budget_query,
+                                      get_participants_ids_query,
                                       insert_participant_query,
                                       list_participants_query,
                                       num_participants_query,
@@ -85,3 +86,8 @@ def update_participant(name: str, budget: int, participant_id: int) -> None:
 def delete_participant(participant_id: int) -> None:
     args = (participant_id,)
     database.execute_query(delete_participant_query, args)
+
+
+def get_participants_ids() -> t.List[int]:
+    results = database.execute_select_query(get_participants_ids_query)
+    return [r["id"] for r in results]

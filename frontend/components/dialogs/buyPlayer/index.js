@@ -12,7 +12,7 @@ export default {
     player: null
   }),
   created() {
-    this.player = JSON.parse(JSON.stringify(this.currentPlayer))
+    this.player = {...this.currentPlayer}
   },
   methods: {
     async buy_player() {

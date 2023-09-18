@@ -1,7 +1,8 @@
 export default {
   name: 'GroupToolbar',
   props: {
-    currentGroupIndex: Number,
+    currentRound: Number,
+    groupStageRound: Number,
     groupName: String
   }
 }

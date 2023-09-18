@@ -24,10 +24,12 @@ class generate_knockout_model(BaseModel):
 class group_table_participant(BaseModel):
     group_id: int
     participant_id: int
-    goals_scored: t.Optional[int]
-    goals_conceded: t.Optional[int]
-    wins: t.Optional[int]
-    losses: t.Optional[int]
-    draws: t.Optional[int]
-    goal_difference: t.Optional[int]
-    points: t.Optional[int]
+    name: str
+    team_image_path: str
+    GF: t.Optional[int]
+    GA: t.Optional[int]
+    GD: t.Optional[int]
+    W: t.Optional[int]
+    L: t.Optional[int]
+    D: t.Optional[int]
+    P: t.Optional[int]

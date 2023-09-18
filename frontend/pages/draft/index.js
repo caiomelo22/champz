@@ -84,7 +84,7 @@ export default {
       if (!participant) {
         this.newParticipant = { name: null, budget: this.genericBudget, team: null };
       } else {
-        this.newParticipant = JSON.parse(JSON.stringify(participant));
+        this.newParticipant = {...participant};
       }
       this.addParticipantDialog = true;
     },

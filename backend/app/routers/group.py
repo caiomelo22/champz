@@ -10,6 +10,7 @@ from app.db.group import (add_participant_to_group, check_group_exists,
 from app.db.match import (check_redraw_needed, check_round_exists,
                           create_matches, delete_matches_by_round_and_above,
                           list_matches_by_group_and_round)
+from app.db.participant import get_participants_ids
 from app.models.group import (create_group_model, generate_knockout_model,
                               group, group_table_participant)
 from app.models.match import create_match_model, match
@@ -19,10 +20,11 @@ router = APIRouter()
 
 
 @router.post("/create")
-def create(data: create_group_model) -> int:
-    group_id = create_group(data.name)
+def create() -> int:
+    participants_list = get_participants_ids()
 
-    participants_list = data.participants
+    group_name = f"G{len(participants_list)}"
+    group_id = create_group(group_name)
 
     for p in participants_list:
         add_participant_to_group(group_id=group_id, participant_id=p)
@@ -33,23 +35,18 @@ def create(data: create_group_model) -> int:
 
     # Build the group matches based on the shuffled participants list
     num_participants = len(participants_list)
-    half = math.floor(num_participants / 2)
-    first_half = participants_list[:half]
-    second_half = participants_list[half:]
     n_games = (num_participants * (num_participants - 1)) / 2
 
-    for _ in range(num_participants):
-        for j in range(len(first_half)):
+    for i in range(num_participants):
+        for j in range(i + 1, num_participants):
             matches.append(
                 create_match_model(
                     group_id=group_id,
-                    participant_1_id=first_half[j],
-                    participant_2_id=list(reversed(second_half))[j],
+                    participant_1_id=participants_list[i],
+                    participant_2_id=participants_list[j],
                     round=n_games,
                 )
             )
-        first_half.append(second_half.pop(0))
-        second_half.append(first_half.pop(0))
 
     create_matches(matches)
 
@@ -57,7 +54,8 @@ def create(data: create_group_model) -> int:
 
 
 @router.post("/generate-knockout")
-def create(data: generate_knockout_model) -> None:
+def create(data: generate_knockout_model) -> dict:
+    # Returns True if a new knockout round is generated ou redrawn
     group_exists = check_group_exists(data.group_id)
     if not group_exists:
         raise HTTPException(status_code=404, detail="Group not found.")
@@ -66,8 +64,10 @@ def create(data: generate_knockout_model) -> None:
     if not round_exists:
         raise HTTPException(status_code=404, detail="Round not found.")
 
+    return_object = {"round": data.previous_round, "generated": False}
+
     if data.previous_round == 1:
-        return
+        return return_object
 
     group_table = get_group_table(data.group_id)
     num_participants = len(group_table)
@@ -90,10 +90,12 @@ def create(data: generate_knockout_model) -> None:
         ]
         group_table = [p for p in group_table if p.participant_id in winners_ids]
 
+    return_object["round"] = num_knockout_matches
+
     new_round_exists = check_round_exists(data.group_id, num_knockout_matches)
     redraw_needed = check_redraw_needed(data.group_id, data.previous_round)
     if not redraw_needed and new_round_exists:
-        return
+        return return_object
 
     # Delete legacy matches from current round and beyond
     delete_matches_by_round_and_above(
@@ -114,6 +116,9 @@ def create(data: generate_knockout_model) -> None:
         matches_to_create.append(match_instance)
 
     create_matches(matches_to_create)
+
+    return_object["generated"] = True
+    return return_object
 
 
 @router.get("/get")
