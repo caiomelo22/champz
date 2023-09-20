@@ -29,8 +29,6 @@ def create() -> int:
     for p in participants_list:
         add_participant_to_group(group_id=group_id, participant_id=p)
 
-    shuffle(participants_list)
-
     matches = []
 
     # Build the group matches based on the shuffled participants list
@@ -48,6 +46,7 @@ def create() -> int:
                 )
             )
 
+    shuffle(matches)
     create_matches(matches)
 
     return group_id
