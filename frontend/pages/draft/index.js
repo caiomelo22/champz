@@ -68,7 +68,7 @@ export default {
         this.get_players_by_position_algorithm(this.positions[this.tab].id);
       }
       const plTeamIndex = this.plTeams.map(x => x.id).indexOf(participant.team_id)
-      this.plTeams[plTeamIndex].participant = participant.id
+      this.plTeams[plTeamIndex].participant_id = participant.id
     },
     get_participant_name(id) {
       if (!id) {
