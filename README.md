@@ -1,6 +1,6 @@
 # Champz
 ## Overview
-This project consists in a FIFA tournament organizer. In this project, the user can create a tournament with any number of participants (6 minimum), and each participant can build your own team with an auction type process. In this process, we set a budget for each participant (the default value is 250), and we iterate through the player positions in FIFA, allowing the participants to bid and buy the best players in the game to use in their teams. 
+This project consists in a FIFA tournament organizer. In this project, the user can create a tournament with any number of participants (4 minimum), and each participant can build your own team with an auction type process. In this process, we set a budget for each participant (the default value is 250), and we iterate through the player positions in FIFA, allowing the participants to bid and buy the best players in the game to use in their teams. 
 
 ![image](https://github.com/caiomelo22/Champz/assets/49076270/333ef0d2-7ff5-4cbc-9cac-787c3eebecc2)
 
