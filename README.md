@@ -14,6 +14,10 @@ To fill your database with the players and all of the images shown in this proje
 IMAGE_DIR_PATH=C:\default_path
 ```
 There are two more .env files that you'll have to define for the backend and frontend, but I'll leave those detailed in each of their folders.
+After you're all setup, just run the following command in the project's root directory and enjoy!
+```
+>> docker-compose up
+```
 
 ## Final Considerations
 This project idea started as a console application that I've developed in early 2019 for a CS class in university. After the semester ended, I kept improving the project and using it to play FIFA tournaments with my friends. In 2022, after I got a few years of experience in coding, I decided to refactor most of the project because the code was kind of messy. I apologize in advance for the documentation because this is my first big project published here. Despite refactoring most of it recently, my main programming language right now is C# and developing this project in Django has been a really cool challenge.
