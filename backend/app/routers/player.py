@@ -10,6 +10,24 @@ from app.models.player import buy_player_model, player
 
 router = APIRouter()
 
+def get_player_limit(participants_number, position):
+    position = int(position)
+    if not participants_number:
+        return 0
+    elif position == 1:
+        return 5
+    elif position == 2:
+        return 12
+    elif position == 3:
+        return 10
+    elif position == 4:
+        return 8
+    elif position == 5:
+        return 7
+    elif position == 6:
+        return 12
+    elif position == 7:
+        return 8
 
 @router.get("/list")
 def list(
@@ -22,7 +40,7 @@ def list(
         where_clauses.append(f"position_id = {position}")
         participants_number = get_participants_num()
         if participants_number:
-            limit_clause = f" LIMIT {participants_number * 3}"
+            limit_clause = f" LIMIT {get_player_limit(participants_number, position)}"
     if team_participant:
         where_clauses.append(f"team_participant_id = {team_participant}")
     return get_players(where_clauses, limit_clause)
