@@ -16,6 +16,8 @@ def list_matches_by_group_and_round(group_id: int, round: int = None) -> t.List[
     query = get_matches_query + f" WHERE m.group_id = {group_id}"
     if round:
         query += f" AND m.round = {round}"
+
+    query += " ORDER BY m.id"
     results = database.execute_select_query(query)
 
     matches = [match(**r) for r in results]

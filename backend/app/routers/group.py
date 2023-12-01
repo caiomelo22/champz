@@ -47,7 +47,7 @@ def create() -> int:
             )
 
     shuffle(matches)
-    create_matches(matches)
+    create_matches(matches * 2)
 
     return group_id
 
@@ -70,24 +70,9 @@ def create(data: generate_knockout_model) -> dict:
 
     group_table = get_group_table(data.group_id)
     num_participants = len(group_table)
-    n_games = (num_participants * (num_participants - 1)) / 2
 
-    if data.previous_round == n_games:
-        num_qualified_players, num_knockout_matches = get_knockout_info(n_games)
-    else:
-        round_matches = list_matches_by_group_and_round(
-            group_id=data.group_id, round=data.previous_round
-        )
-
-        num_knockout_matches = len(round_matches) // 2
-        num_qualified_players = num_knockout_matches * 2
-
-        # Filter table by only the winner of the current round
-        winners_ids = [
-            m.participant_1_id if m.goals_1 > m.goals_2 else m.participant_2_id
-            for m in round_matches
-        ]
-        group_table = [p for p in group_table if p.participant_id in winners_ids]
+    num_knockout_matches = 1
+    num_qualified_players = 2
 
     return_object["round"] = num_knockout_matches
 
