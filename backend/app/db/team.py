@@ -4,9 +4,11 @@ import typing as t
 from fastapi import HTTPException
 
 from app.models.team import team
-from app.queries.teams import (add_participant_to_team_query,
-                               get_participant_id_by_team_query,
-                               get_teams_by_league_query)
+from app.queries.teams import (
+    add_participant_to_team_query,
+    get_participant_id_by_team_query,
+    get_most_popular_teams_query,
+)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
@@ -29,9 +31,8 @@ def get_participant_id_by_team_id(team_id: int) -> int:
     return results[0]["participant_id"]
 
 
-def get_teams_by_league(league_id: int) -> t.List[team]:
-    args = (league_id,)
-    results = database.execute_select_query(get_teams_by_league_query, args)
+def get_most_popular_teams() -> t.List[team]:
+    results = database.execute_select_query(get_most_popular_teams_query)
 
     teams = [team(**r) for r in results]
 

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import (group, league, match, participant, player, position,
+from app.routers import (group, match, participant, player, position,
                          team)
 
 app = FastAPI()
@@ -31,4 +31,3 @@ app.include_router(team.router, prefix="/team", tags=["team"])
 app.include_router(participant.router, prefix="/participant", tags=["participant"])
 app.include_router(match.router, prefix="/match", tags=["match"])
 app.include_router(group.router, prefix="/group", tags=["group"])
-app.include_router(league.router, prefix="/league", tags=["league"])

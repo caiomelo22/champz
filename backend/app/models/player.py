@@ -19,9 +19,6 @@ class player(BaseModel):
     nation_name: str
     nation_image_path: str
     specific_position: str
-    skills: str
-    weak_foot: str
-    work_rate: str
     overall: int
     pace: int
     shooting: int

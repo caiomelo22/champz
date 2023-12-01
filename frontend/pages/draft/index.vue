@@ -168,7 +168,7 @@
     <br />-->
     <!-- Add Participant Modal -->
     <v-dialog v-if="addParticipantDialog" v-model="addParticipantDialog" width="700px" max-width="100%">
-      <AddParticipant :participant-prop="newParticipant" :pl-teams="plTeams" @close="reset_participant_dialog"
+      <AddParticipant :participant-prop="newParticipant" :teams="teams" @close="reset_participant_dialog"
         @update="participant_added" />
     </v-dialog>
     <!-- Buy Player Modal -->

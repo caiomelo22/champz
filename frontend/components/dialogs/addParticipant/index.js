@@ -7,7 +7,7 @@ export default {
   }),
   props: {
     participantProp: Object,
-    plTeams: {
+    teams: {
       type: Array,
       default: []
     }

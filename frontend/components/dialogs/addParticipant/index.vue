@@ -7,7 +7,7 @@
       <form @submit.prevent="add_participant()">
         <v-text-field label="Name" v-model="participant.name"></v-text-field>
         <v-combobox v-model="selectedTeam" :items="
-          plTeams.filter(
+          teams.filter(
             (x) => !x.participant_id
           )
         " item-text="name" label="Team" outlined dense></v-combobox>

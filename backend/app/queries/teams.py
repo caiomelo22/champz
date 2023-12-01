@@ -18,10 +18,17 @@ add_participant_to_team_query = """
     WHERE id = %s;
 """
 
-get_teams_by_league_query = """
-    SELECT t.*, l.name as league_name, l.image_path as league_image_path
+get_most_popular_teams_query = """
+    SELECT t.*
     FROM `fifa-db`.team t
-        LEFT JOIN `fifa-db`.league l
-            ON t.league_id = l.id
-    WHERE t.league_id = %s
+    INNER JOIN (
+        SELECT t.id, COUNT(*) as n_players
+        FROM `fifa-db`.team t
+        INNER JOIN `fifa-db`.player p
+        ON t.id = p.team_origin_id
+        GROUP BY (t.id)
+    ) pc
+    ON t.id = pc.id
+    ORDER BY pc.n_players DESC
+    LIMIT 20;
 """
