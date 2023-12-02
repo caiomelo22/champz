@@ -51,7 +51,7 @@ get_group_table_query = """
         COALESCE(SUM(CASE WHEN m.goals_1 = m.goals_2 THEN 1 ELSE 0 END), 0) AS D,
         COALESCE(SUM(CASE WHEN gp.participant_id = m.participant_1_id THEN m.goals_1 ELSE m.goals_2 END) - SUM(CASE WHEN gp.participant_id = m.participant_1_id THEN m.goals_2 ELSE m.goals_1 END), 0) AS GD,
         COALESCE((SUM(CASE WHEN gp.participant_id = m.participant_1_id THEN (m.goals_1 > m.goals_2) ELSE (m.goals_2 > m.goals_1) END) * 3) +
-        COALESCE(SUM(CASE WHEN gp.participant_id = m.participant_1_id THEN (m.goals_1 = m.goals_2) ELSE 0 END), 0), 0) AS P
+        COALESCE(SUM(CASE WHEN m.goals_1 = m.goals_2 THEN 1 ELSE 0 END), 0), 0) AS P
     FROM `fifa-db`.group g
         INNER JOIN `fifa-db`.group_participant gp
             ON g.id = gp.group_id

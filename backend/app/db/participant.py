@@ -36,7 +36,7 @@ def get_participant_budget(participant_id: int) -> int:
 
 def update_participant_budget(participant_id: int, value: int) -> None:
     current_budget = get_participant_budget(participant_id)
-    if current_budget - value < 0:
+    if current_budget + value < 0:
         raise HTTPException(
             status_code=400, detail="Participant does not have enough budget"
         )
