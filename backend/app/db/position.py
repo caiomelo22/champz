@@ -7,5 +7,10 @@ from database.db import Database
 database = Database()
 
 
-def list_positions() -> t.List[position]:
-    return database.execute_select_query(list_positions_query)
+def list_positions(where_clause: t.Optional[str] = None) -> t.List[position]:
+    query = list_positions_query
+
+    if where_clause:
+        query += where_clause
+
+    return database.execute_select_query(query)
