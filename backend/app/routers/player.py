@@ -32,10 +32,13 @@ def list(
 ) -> t.List[player]:
     where_clauses = []
     limit_clause = ""
+    position_where_clause = ""
 
-    position_where_clause = f" WHERE id = {position}"
+    if position:
+        position_where_clause = f" WHERE id = {position}"
 
     positions_filtered = list_positions(where_clause=position_where_clause)
+    
     if not len(positions_filtered):
         raise HTTPException(status_code=404, detail="Position not found.")
     
@@ -48,7 +51,7 @@ def list(
 
         if participants_number:
             limit_clause = (
-                f" LIMIT {participants_number * _limit_by_position[position_obj['name']]}"
+                f" LIMIT {int(participants_number * _limit_by_position[position_obj['name']])}"
             )
 
     if team_participant:
