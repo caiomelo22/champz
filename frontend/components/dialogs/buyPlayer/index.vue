@@ -14,7 +14,7 @@
                     z-index: 2;
                   ">{{ player.overall }}</span>
             <span style="font-size: 25px; z-index: 2">{{
-                player.specific_position
+                player.specific_position.split(',')[0]
             }}</span>
             <img style="width: 60px; z-index: 2; margin: auto"
               :src="gs.get_image_path(player.nation_image_path)" />
@@ -30,7 +30,7 @@
                   left: -28px;
                 " />
           <div class="card-name">
-            <span style="font-weight: 700; font-size: 17px">{{
+            <span style="font-weight: 700; font-size: 20px">{{
                 player.name
             }}</span>
           </div>
