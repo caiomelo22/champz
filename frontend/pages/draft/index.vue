@@ -43,10 +43,10 @@
                   </thead>
                   <tbody>
                     <tr v-for="(participant, i) in participants" :key="i">
-                      <td class="champzFont">{{ participant.id }}</td>
-                      <td class="champzFont">{{ participant.name }}</td>
-                      <td class="champzFont">${{ participant.budget }}</td>
-                      <td class="champzFont">
+                      <td class="champz-font">{{ participant.id }}</td>
+                      <td class="champz-font">{{ participant.name }}</td>
+                      <td class="champz-font">${{ participant.budget }}</td>
+                      <td class="champz-font">
                         <img style="width: 30px" :src="gs.get_image_path(participant.team_image_path)" />
                         {{ participant.team_name }}
                       </td>
@@ -110,18 +110,18 @@
                   <tbody>
                     <tr v-for="player in selectedPosition"
                       :key="`${player.id}-${player.team_participant}-${player.value}`">
-                      <td class="champzFont">{{ player.id }}</td>
-                      <td class="champzFont">
+                      <td class="champz-font">{{ player.id }}</td>
+                      <td class="champz-font">
                         <img :src="gs.get_image_path(player.image_path)" style="max-height: 65px" />
                         <img style="width: 30px" :src="gs.get_image_path(player.nation_image_path)" />
                         <img style="width: 30px" :src="gs.get_image_path(player.team_origin_image_path)" />
                       </td>
-                      <td class="champzFont">
+                      <td class="champz-font">
                         <span>{{ player.name }}</span>
                       </td>
-                      <td class="champzFont">{{ player.overall }}</td>
-                      <td class="champzFont">{{ player.specific_position }}</td>
-                      <td class="champzFont">
+                      <td class="champz-font">{{ player.overall }}</td>
+                      <td class="champz-font">{{ player.specific_position }}</td>
+                      <td class="champz-font">
                         {{
                             player.team_participant_id
                               ? get_participant_name(
@@ -130,7 +130,7 @@
                               : "-"
                         }}
                       </td>
-                      <td class="champzFont">${{ player.value }}</td>
+                      <td class="champz-font">${{ player.value }}</td>
                       <td>
                         <v-icon color="#2B7A0B" large @click="get_player(player)">mdi-cash-plus</v-icon>
                         <v-icon color="#EB1D36" class="ml-2" large @click="remove_buy(player)">mdi-cash-minus</v-icon>

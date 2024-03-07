@@ -1,5 +1,5 @@
-body {
-  font-family: 'Inter' !important;
+.v-application {
+  font-family: 'Poppins' !important;
 }
 
 .row {
@@ -32,14 +32,12 @@ body {
 
 .champz-table-wrapper {
   width: 100%;
-  border-radius: 12px;
   margin: 0px auto;
   border: 1px solid #DADADA;
 }
 
 .champz-table {
   border-collapse: collapse;
-  border-radius: 12px;
   overflow: hidden;
   border: none !important;
   width: 100%;
@@ -149,8 +147,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 63px;
 }
 
-.champzFont {
+.champz-font {
   font-size: 14px;
   font-weight: 500;
-  font-family: system-ui;
 }
