@@ -118,8 +118,7 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   width: 50%;
   bottom: 16px;
-  padding-left: 50px;
-  font-size: 20px;
+  font-size: 30px;
 }
 
 .card-stats-right {
@@ -127,8 +126,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 50%;
   bottom: 16px;
   right: 0;
-  padding-left: 20px;
-  font-size: 20px;
+  font-size: 30px;
 }
 
 .card-stats {

@@ -37,34 +37,34 @@
           <div class="card-stats">
             <div class="vertical-divisor"></div>
             <div class="card-stats-left">
-              <v-row no-gutters>
+              <v-row no-gutters style="justify-content: center;">
                 <span class="mr-1 card-stat-value">{{
                     player.pace
                 }}</span><span class="mr-1 card-stat-name">PAC</span>
               </v-row>
-              <v-row no-gutters>
+              <v-row no-gutters style="justify-content: center; margin-top: 8px;">
                 <span class="mr-1 card-stat-value">{{
                     player.shooting
                 }}</span><span class="mr-1 card-stat-name">SHO</span>
               </v-row>
-              <v-row no-gutters>
+              <v-row no-gutters style="justify-content: center; margin-top: 8px;">
                 <span class="mr-1 card-stat-value">{{
                     player.passing
                 }}</span><span class="mr-1 card-stat-name">PAS</span>
               </v-row>
             </div>
             <div class="card-stats-right text-end">
-              <v-row no-gutters>
+              <v-row no-gutters style="justify-content: center;">
                 <span class="mr-1 card-stat-value">{{
                     player.dribbling
                 }}</span><span class="mr-1 card-stat-name">DRI</span>
               </v-row>
-              <v-row no-gutters>
+              <v-row no-gutters style="justify-content: center; margin-top: 8px;">
                 <span class="mr-1 card-stat-value">{{
                     player.defending
                 }}</span><span class="mr-1 card-stat-name">DEF</span>
               </v-row>
-              <v-row no-gutters>
+              <v-row no-gutters style="justify-content: center; margin-top: 8px;">
                 <span class="mr-1 card-stat-value">{{
                     player.physical
                 }}</span><span class="mr-1 card-stat-name">PHY</span>
