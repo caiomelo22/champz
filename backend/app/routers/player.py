@@ -6,11 +6,11 @@ from io import BytesIO
 from fastapi import APIRouter, HTTPException, Query, Response
 
 from app.db.participant import get_participants, get_participants_num, update_participant_budget
-from app.db.players import buy_player, get_player_by_id, get_players
+from app.db.players import buy_player, get_player_by_id, get_player_transfers, get_players
 from app.db.team import get_participant_id_by_team_id
 from app.db.position import list_positions
 from app.models.player import buy_player_model, player
-from app.utils.export import write_players_sheet
+from app.utils.export import write_players_sheet, write_transfers_sheet
 
 _limit_by_position = {
     "Goalkeepers": 1,
@@ -89,7 +89,7 @@ def get_sheet() -> t.Any:
 
 
 @router.get("/sheet-by-participant")
-def get_sheet() -> t.Any:
+def get_participant_sheet() -> t.Any:
     participants = get_participants()
 
     wb = openpyxl.Workbook()
@@ -138,3 +138,36 @@ def buy(
     buy_player(player_id, data.team_participant, data.value)
 
     return get_player_by_id(player_id)
+
+
+@router.get("/transfers-sheet")
+def get_transfers_sheet() -> t.Any:
+    transfers = get_player_transfers()
+
+    wb = openpyxl.Workbook()
+
+    current_team_players = []
+    current_team = None
+    sheet_index = -1
+
+    for player in transfers:
+        if player["team_from"] != current_team:
+            if current_team:
+                write_transfers_sheet(wb.active, current_team_players)
+                current_team_players = []
+
+            current_team = player["team_from"]
+            sheet_index += 1
+            
+            wb.create_sheet(index=sheet_index, title=current_team)
+            wb.active = sheet_index
+
+        current_team_players.append(player)
+
+    # Serialize the workbook to BytesIO
+    stream = BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    # Return the file-like object in response
+    return Response(content=stream.getvalue(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": "attachment; filename=sheet.xlsx"})

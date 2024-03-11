@@ -3,9 +3,14 @@
 import typing as t
 
 from app.models.player import player
-from app.queries.players import (buy_player_query, change_players_team_query,
-                                 player_exists_by_id_query, players_query,
-                                 reset_players_team_by_participant_id_query)
+from app.queries.players import (
+    buy_player_query,
+    change_players_team_query,
+    player_exists_by_id_query,
+    players_query,
+    reset_players_team_by_participant_id_query,
+    player_transfers_query,
+)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
@@ -67,3 +72,9 @@ def change_players_team(new_team_id: int, old_team_id: int) -> None:
 def reset_players_team_by_participant_id(participant_id: int) -> None:
     args = (participant_id,)
     database.execute_query(reset_players_team_by_participant_id_query, args)
+
+
+def get_player_transfers() -> t.Any:
+    results = database.execute_select_query(player_transfers_query)
+
+    return results

@@ -43,3 +43,17 @@ reset_players_team_by_participant_id_query = """
     SET p.team_participant_id = null, p.value = null
     WHERE part.id = %s;
 """
+
+player_transfers_query = """
+    SELECT 
+        p.name as name, p.overall, t.name as team_from, pt.name as team_to 
+    FROM `fifa-db`.player p 
+    JOIN `fifa-db`.team t
+        ON p.team_origin_id = t.id 
+    JOIN `fifa-db`.team pt
+        ON p.team_participant_id = pt.id 
+    WHERE 
+        p.team_participant_id IS NOT NULL
+        AND p.team_participant_id != p.team_origin_id
+    ORDER BY team_from, team_to;
+"""
