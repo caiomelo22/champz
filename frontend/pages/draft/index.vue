@@ -26,7 +26,6 @@
                 <table class="champz-table">
                   <thead>
                     <tr>
-                      <th scope="col">#</th>
                       <th scope="col">
                         <b>Name</b>
                       </th>
@@ -43,7 +42,6 @@
                   </thead>
                   <tbody>
                     <tr v-for="(participant, i) in participants" :key="i">
-                      <td class="champz-font">{{ participant.id }}</td>
                       <td class="champz-font">{{ participant.name }}</td>
                       <td class="champz-font">${{ participant.budget }}</td>
                       <td class="champz-font">
@@ -85,7 +83,6 @@
                 <table class="champz-table">
                   <thead>
                     <tr>
-                      <th scope="col">#</th>
                       <th scope="col">
                         <b>Player</b>
                       </th>
@@ -110,7 +107,6 @@
                   <tbody>
                     <tr v-for="player in selectedPosition"
                       :key="`${player.id}-${player.team_participant}-${player.value}`">
-                      <td class="champz-font">{{ player.id }}</td>
                       <td class="champz-font">
                         <img :src="gs.get_image_path(player.image_path)" style="max-height: 65px" />
                         <img style="width: 30px" :src="gs.get_image_path(player.nation_image_path)" />
@@ -145,27 +141,6 @@
       </v-col>
     </v-row>
 
-    <!-- <h3>List of Players</h3>
-      
-      <div class="container">
-        <button
-          class="btn btn-outline-info"
-          v-on:click="generate_transfers_file()"
-        >Generate Transfers File</button>
-        <button
-          class="btn btn-outline-info"
-          v-on:click="generate_players_file()"
-        >Generate Players Excel</button>
-        <button
-          class="btn btn-outline-info"
-          v-on:click="generate_teams_file()"
-        >Generate Participants Teams Excel</button>
-        <a style="float: right;" class="btn btn-success" :href="'/webapp/matches'">Matches</a>
-      </div>
-      <br />
-      <br />
-      <br />
-    <br />-->
     <!-- Add Participant Modal -->
     <v-dialog v-if="addParticipantDialog" v-model="addParticipantDialog" width="700px" max-width="100%">
       <AddParticipant :participant-prop="newParticipant" :teams="teams" @close="reset_participant_dialog"
