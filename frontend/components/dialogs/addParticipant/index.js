@@ -14,6 +14,10 @@ export default {
   },
   created() {
     this.participant = this.participantProp;
+    if (this.participantProp) {
+        const index = this.teams.map(x => x.id).indexOf(this.participant.team_id)
+        this.selectedTeam = this.teams[index]
+    }
   },
   methods: {
     async add_participant () {
