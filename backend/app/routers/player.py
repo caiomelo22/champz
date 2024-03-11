@@ -5,7 +5,7 @@ from io import BytesIO
 
 from fastapi import APIRouter, HTTPException, Query, Response
 
-from app.db.participant import get_participants_num, update_participant_budget
+from app.db.participant import get_participants, get_participants_num, update_participant_budget
 from app.db.players import buy_player, get_player_by_id, get_players
 from app.db.team import get_participant_id_by_team_id
 from app.db.position import list_positions
@@ -76,6 +76,31 @@ def get_sheet() -> t.Any:
         limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
 
         players = get_players(where_clauses=where_clause, limit_clause=limit_clause)
+
+        write_players_sheet(wb.active, players)
+    
+    # Serialize the workbook to BytesIO
+    stream = BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    # Return the file-like object in response
+    return Response(content=stream.getvalue(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": "attachment; filename=sheet.xlsx"})
+
+
+@router.get("/sheet-by-participant")
+def get_sheet() -> t.Any:
+    participants = get_participants()
+
+    wb = openpyxl.Workbook()
+
+    for i, participant in enumerate(participants):
+        wb.create_sheet(index=i, title=participant.name)
+        wb.active = i
+
+        where_clause = [f"team_participant_id = {participant.team_id}"]
+
+        players = get_players(where_clauses=where_clause)
 
         write_players_sheet(wb.active, players)
     
