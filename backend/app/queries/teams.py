@@ -30,5 +30,5 @@ get_most_popular_teams_query = """
     ) pc
     ON t.id = pc.id
     ORDER BY pc.n_players DESC
-    LIMIT 20;
+    LIMIT 40;
 """
