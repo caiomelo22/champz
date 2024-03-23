@@ -25,6 +25,15 @@ export default {
         this.loading = false;
     },
     methods: {
+        getParticipantPercentage(participant) {
+            const totalPossiblePoints = (participant.W + participant.D + participant.L) * 3;
+
+            if (totalPossiblePoints == 0) {
+                return '-';
+            }
+
+            return (100 * (participant.P / totalPossiblePoints)).toFixed(2);
+        },
         async score_changed(match) {
             let matchIndex = this.matches[match.round]
                 .map((x) => x.id)
@@ -61,7 +70,7 @@ export default {
             this.groupLoading = false;
         },
         get_match(match) {
-            this.currentMatch = {...match};
+            this.currentMatch = { ...match };
             this.registerScoreDialog = true;
         },
         async delete_group(group_id) {
@@ -77,11 +86,11 @@ export default {
         },
         async create_group_stage() {
             await this.$axios
-            .post(`group/create`)
-            .then((create_response) => {
-                const group_id = create_response.data;
-                this.group = { id: group_id };
-            });
+                .post(`group/create`)
+                .then((create_response) => {
+                    const group_id = create_response.data;
+                    this.group = { id: group_id };
+                });
         },
         async get_group_stage() {
             await this.$axios

@@ -28,6 +28,7 @@
                                             <th class="champz-font" scope="col">GF</th>
                                             <th class="champz-font" scope="col">GA</th>
                                             <th class="champz-font" scope="col">GD</th>
+                                            <th class="champz-font" scope="col">%</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -46,6 +47,7 @@
                                             <td class="champz-font">{{ participant.GF }}</td>
                                             <td class="champz-font">{{ participant.GA }}</td>
                                             <td class="champz-font">{{ participant.GD }}</td>
+                                            <td class="champz-font">{{ getParticipantPercentage(participant) }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
