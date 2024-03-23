@@ -4,7 +4,7 @@
             <h5>Register Score</h5>
         </v-card-title>
         <v-card-text>
-            <form @submit.prevent="register_score()">
+            <form @submit.prevent="registerScore()">
                 <v-row>
                     <v-col cols="12" md="3">
                         <span class="champz-font mr-2 mt-1" style="float: right">{{
@@ -30,8 +30,7 @@
                 </v-row>
                 <v-card-actions style="justify-content: end">
                     <v-btn type="button" color="red" dark @click="$emit('close')">Close</v-btn>
-                    <v-btn type="submit" color="green" :dark="!(!match.goals_2 ||
-                        !match.goals_1)" :disabled="!match.goals_2 || !match.goals_1"
+                    <v-btn type="submit" color="green" :dark="goalFieldsFilled()" :disabled="!goalFieldsFilled()"
                         :loading="registerScoreLoading">Save changes</v-btn>
                 </v-card-actions>
             </form>

@@ -14,7 +14,7 @@ from app.db.participant import get_participants_ids
 from app.models.group import (create_group_model, generate_knockout_model,
                               group, group_table_participant)
 from app.models.match import create_match_model, match
-from app.utils.helper import get_knockout_info
+from app.utils.helper import get_knockout_info, get_round_winners
 
 router = APIRouter()
 
@@ -79,14 +79,11 @@ def create(data: generate_knockout_model) -> dict:
             group_id=data.group_id, round=data.previous_round
         )
 
-        num_knockout_matches = len(round_matches) // 2
+        num_knockout_matches = data.previous_round // 2
         num_qualified_players = num_knockout_matches * 2
 
         # Filter table by only the winner of the current round
-        winners_ids = [
-            m.participant_1_id if m.goals_1 > m.goals_2 else m.participant_2_id
-            for m in round_matches
-        ]
+        winners_ids = get_round_winners(round_matches)
         group_table = [p for p in group_table if p.participant_id in winners_ids]
 
     return_object["round"] = num_knockout_matches
@@ -113,6 +110,16 @@ def create(data: generate_knockout_model) -> dict:
             round=num_knockout_matches,
         )
         matches_to_create.append(match_instance)
+
+        if num_knockout_matches == 2:
+            match_instance = create_match_model(
+                group_id=data.group_id,
+                participant_1_id=participant_1,
+                participant_2_id=participant_2,
+                round=num_knockout_matches,
+            )
+            matches_to_create.append(match_instance)
+
 
     create_matches(matches_to_create)
 
