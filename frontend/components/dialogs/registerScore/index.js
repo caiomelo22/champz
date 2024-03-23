@@ -11,7 +11,14 @@ export default {
     this.match = {...this.currentMatch}
   },
   methods: {
-    async register_score() {
+    isNullOrEmpty(value) {
+        return value === null || value === undefined || value === '';
+    },
+    goalFieldsFilled() {
+        return (!this.isNullOrEmpty(this.match.goals_2) &&
+            !this.isNullOrEmpty(this.match.goals_1))
+    },
+    async registerScore() {
       this.registerScoreLoading = true;
       this.match.goals_1 = parseInt(this.match.goals_1);
       this.match.goals_2 = parseInt(this.match.goals_2);
