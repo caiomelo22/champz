@@ -73,7 +73,7 @@ def create(data: generate_knockout_model) -> dict:
     n_games = (num_participants * (num_participants - 1)) / 2
 
     if data.previous_round == n_games:
-        num_qualified_players, num_knockout_matches = get_knockout_info(n_games)
+        num_qualified_players, num_knockout_matches = get_knockout_info(num_participants)
     else:
         round_matches = list_matches_by_group_and_round(
             group_id=data.group_id, round=data.previous_round
