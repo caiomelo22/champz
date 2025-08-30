@@ -1,5 +1,25 @@
+/* Global font family override */
+* {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
 .v-application {
-  font-family: 'Poppins' !important;
+  font-family: 'DM Sans', 'Inter', sans-serif !important;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  min-height: 100vh;
+}
+
+/* Override Vuetify font families */
+.v-btn, .v-card-title, .v-card-text, .v-list-item, .v-tab, .v-text-field input, .v-select, .v-combobox {
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+.v-main {
+  background: transparent !important;
 }
 
 .row {
@@ -20,67 +40,136 @@
 }
 
 .active {
-  background: #3330E4;
+  background: rgba(203, 213, 225, 0.95);
   color: white !important;
   border-radius: 4px;
 }
 
 .loader-row {
-  padding: 12px;
+  padding: 16px;
   justify-content: center;
 }
 
+/* Loading animation */
+.v-progress-circular {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Fix Vuetify select dropdown colors */
+.v-menu__content {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(100, 116, 139, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.v-list {
+  background: transparent !important;
+  padding: 8px !important;
+}
+
+.v-list-item {
+  background: transparent !important;
+  color: rgba(226, 232, 240, 0.9) !important;
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+.v-list-item:hover {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: white !important;
+}
+
+.v-list-item--active {
+  background: rgba(59, 130, 246, 0.3) !important;
+  color: white !important;
+}
+
+.v-list-item__title {
+  color: inherit !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+/* Fix combobox input styling */
+.v-select.v-text-field input,
+.v-combobox.v-text-field input {
+  color: rgba(226, 232, 240, 0.95) !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+.v-select__selection,
+.v-combobox__selection {
+  color: rgba(226, 232, 240, 0.95) !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+/* Modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(51, 48, 228, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(51, 48, 228, 0.5);
+}
+
+/* Remove old table styles since we're using a card-based layout now */
 .champz-table-wrapper {
-  width: 100%;
-  margin: 0px auto;
-  border: 1px solid #DADADA;
+  display: none;
 }
 
 .champz-table {
-  border-collapse: collapse;
-  overflow: hidden;
-  border: none !important;
-  width: 100%;
-}
-
-.champz-table tr:nth-child(even) {
-  background: #f2f2f2 !important;
-}
-
-.champz-table tr:not(:last-child) {
-  border-bottom: 1px solid #D5D8DF;
-}
-
-.champz-table tbody {
-  color: black;
-  font-weight: 400;
-  font-size: 12px;
-}
-
-.champz-table th,
-.champz-table td {
-  border: none !important;
-  text-align: center !important;
-  padding: 12px 12px !important;
-}
-
-.champz-table th {
-  padding: 12px !important;
-}
-
-.champz-table thead {
-  background: #3330E4;
-  color: white;
+  display: none;
 }
 
 .v-card {
-  -webkit-box-shadow: 2px 2px 21px -10px #3330E4 !important; 
-  box-shadow: 2px 2px 21px -10px #3330E4 !important;
+  background: rgba(30, 41, 59, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(100, 116, 139, 0.3) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.v-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 900 !important;
-  color: #3330E4;
+  font-weight: 700 !important;
+  color: rgba(226, 232, 240, 0.95) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  margin-bottom: 8px;
 }
 
 .card-info {
@@ -146,6 +235,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .champz-font {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 500;
+  color: #4a5568;
 }

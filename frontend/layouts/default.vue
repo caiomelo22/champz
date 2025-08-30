@@ -21,9 +21,12 @@ export default {
 </script>
 <style scoped>
 .app {
-  background: #F0EBE3;
+  background: transparent;
+  min-height: 100vh;
 }
 .main {
   margin-bottom: 12px;
+  padding: 20px;
+  background: transparent;
 }
 </style>
