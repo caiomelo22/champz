@@ -2,11 +2,11 @@
 ## Overview
 This project is a FIFA tournament organizer. Users can create a tournament with any number of participants (minimum of 4), and each participant builds their own team through an auction-style process. Each participant is given a budget (default: 250), and the auction proceeds by iterating through FIFA player positions. Participants can bid on and purchase the best players in the game to assemble their teams.
 
-![image](https://github.com/user-attachments/assets/6e4c41ba-d384-489f-962f-cc7d7abb196e)
+<img width="1641" height="908" alt="image" src="https://github.com/user-attachments/assets/7b561ae1-b09c-4e46-af89-af1567444069" />
 
 After the teams are built, the project generates a group stage where every participant plays against each other. Once all matches are completed, the top four players advance to the semifinals: first place faces fourth, and second faces third. The winners of the semifinals then compete in the final to determine the tournament champion.
 
-![image](https://github.com/caiomelo22/Champz/assets/49076270/83a041d5-ae32-4bcd-903e-5162df4bf4e2)
+<img width="1755" height="922" alt="image" src="https://github.com/user-attachments/assets/0196c0ea-ee93-4e63-aeb8-d9f13fd8dd7e" />
 
 ## Setup
 To populate your database with players and all the images used in this project, make sure to run the [Fifa-Players-Scrapping](https://github.com/caiomelo22/Fifa-Players-Scrapping) project first. To define the image directory as a volume in this project, copy the `IMAGE_DIR_PATH` environment variable from the scrapping project's .env file and paste it into a .env file at the root of this repository:
