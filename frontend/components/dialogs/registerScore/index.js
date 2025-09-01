@@ -1,3 +1,5 @@
+import GeneralServices from "@/services/GeneralServices.js";
+
 export default {
   name: 'RegisterScoreDialog',
   props: {
@@ -5,7 +7,8 @@ export default {
   },
   data: () => ({
     registerScoreLoading: false,
-    match: null
+    match: null,
+    gs: new GeneralServices()
   }),
   created() {
     this.match = {...this.currentMatch}

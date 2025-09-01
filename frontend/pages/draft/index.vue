@@ -4,8 +4,8 @@
       <h1 class="page-title">Champz</h1>
     </div>
     
-    <v-row class="mt-8">
-      <v-col cols="12" md="5" class="pl-0 pr-3">
+    <v-row>
+      <v-col cols="12" md="5" class="pl-0 pr-3 pt-0">
         <!-- Budget Card -->
         <v-card class="budget-card mb-6" elevation="0">
           <v-card-text class="pa-6">
@@ -102,7 +102,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="7" class="pr-0 pl-3">
+      <v-col cols="12" md="7" class="pr-0 pl-3 pt-0">
         <!-- Players Card -->
         <v-card class="players-card" elevation="0">
           <v-card-text class="pa-6">
@@ -252,7 +252,7 @@
 
 .page-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 40px;
 }
 
 .page-title {
