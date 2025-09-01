@@ -3,7 +3,7 @@
 </template>
 <style scoped>
 .footer {
-    color: #3330E4;
+    color: rgba(203, 213, 225, 0.95);
     position: absolute;
     bottom: 0px;
     padding: 0px 12px;

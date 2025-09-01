@@ -59,7 +59,7 @@ export default {
     theme: {
       themes: {
         light: {
-          primary: '#3330E4',
+          primary: 'rgba(203, 213, 225, 0.95)',
         }
       }
     }
@@ -67,8 +67,8 @@ export default {
 
   googleFonts: {
     families: {
-        Inter: [100, 200, 300, 400, 500, 600, 700],
-        Roboto: [100, 200, 300, 400, 500, 600, 700],
+        Inter: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        'DM Sans': [100, 200, 300, 400, 500, 600, 700, 800, 900],
         Poppins: [100, 200, 300, 400, 500, 600, 700]
     }
   },
@@ -78,6 +78,12 @@ export default {
   },
 
   router: {
-    // linkExactActiveClass: 'active'
+    extendRoutes(routes, resolve) {
+      // Add redirect from root to draft
+      routes.push({
+        path: '/',
+        redirect: '/draft'
+      })
+    }
   }
 }
