@@ -50,21 +50,21 @@ def check_player_exists(player_id: str) -> bool:
 
 def buy_player(
     player_id: str,
-    team_participant_id: t.Optional[int] = None,
+    team_participant: t.Optional[str] = None,
     value: t.Optional[int] = None,
 ) -> None:
     args = (
-        team_participant_id,
+        team_participant,
         value,
         player_id,
     )
     database.execute_query(buy_player_query, args)
 
 
-def change_players_team(new_team_id: int, old_team_id: int) -> None:
+def change_players_team(new_team_name: str, old_team_name: str) -> None:
     args = (
-        new_team_id,
-        old_team_id,
+        new_team_name,
+        old_team_name,
     )
     database.execute_query(change_players_team_query, args)
 

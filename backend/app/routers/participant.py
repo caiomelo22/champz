@@ -7,7 +7,7 @@ from app.db.participant import (create_participant, delete_participant,
                                 update_participant)
 from app.db.players import (change_players_team,
                             reset_players_team_by_participant_id)
-from app.db.team import add_participant_to_team, get_participant_id_by_team_id
+from app.db.team import add_participant_to_team, get_participant_id_by_team_name
 from app.models.participant import manage_participant_model, participant
 
 router = APIRouter()
@@ -20,7 +20,7 @@ def list() -> t.List[participant]:
 
 @router.post("/create")
 def create(data: manage_participant_model) -> participant:
-    existing_participant_id = get_participant_id_by_team_id(data.team)
+    existing_participant_id = get_participant_id_by_team_name(data.team)
     if existing_participant_id:
         raise HTTPException(
             status_code=400,
@@ -40,19 +40,19 @@ def create(participant_id: int, data: manage_participant_model) -> participant:
             detail="Participant not found.",
         )
 
-    new_team_participant_id = get_participant_id_by_team_id(data.team)
+    new_team_participant_id = get_participant_id_by_team_name(data.team)
     if new_team_participant_id and new_team_participant_id != participant_id:
         raise HTTPException(
             status_code=400,
             detail="The chosen team has already been assigned to another participant.",
         )
-    elif data.team != participant_instance.team_id:
+    elif data.team != participant_instance.team_name:
         change_players_team(
-            new_team_id=data.team, old_team_id=participant_instance.team_id
+            new_team_name=data.team, old_team_name=participant_instance.team_name
         )
 
         # Reseting participant's old team
-        add_participant_to_team(None, participant_instance.team_id)
+        add_participant_to_team(None, participant_instance.team_name)
 
         # Adding participant to new team
         add_participant_to_team(participant_id, data.team)

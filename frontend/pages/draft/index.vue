@@ -90,7 +90,7 @@
                     icon 
                     small 
                     :loading="participant.team_loading_att" 
-                    @click="get_players_by_team(participant, participant.team_id)"
+                    @click="get_players_by_team(participant, participant.team_name)"
                     class="action-btn"
                   >
                     <v-icon size="18" color="#3b82f6">mdi-eye</v-icon>
@@ -176,7 +176,7 @@
                     <div class="owner-info">
                       <span class="owner-label">Owner:</span>
                       <span class="owner-name">
-                        {{ player.team_participant_id ? get_participant_name(player.participant_id) : "Available" }}
+                        {{ player.team_participant ? get_participant_name(player.participant_id) : "Available" }}
                       </span>
                     </div>
                   </div>

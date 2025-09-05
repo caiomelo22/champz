@@ -24,8 +24,7 @@ get_participants_by_group_query = """
     SELECT 
         p.id, 
         p.name, 
-        p.budget, 
-        t.id as team_id,
+        p.budget,
         t.name as team_name, 
         t.image_path as team_image_path
     FROM `fifa-db`.group g

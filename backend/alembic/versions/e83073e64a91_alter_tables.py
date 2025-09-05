@@ -28,13 +28,12 @@ def upgrade():
         ),
     )
 
-    # Add the team_participant_id columns to the player table
+    # Add the team_participant column to the player table (now references participant's team name)
     op.add_column(
         "player",
         sa.Column(
-            "team_participant_id",
-            sa.Integer,
-            sa.ForeignKey("team.id", ondelete="SET NULL"),
+            "team_participant",
+            sa.String(255),
             nullable=True,
         ),
     )
@@ -47,9 +46,8 @@ def downgrade():
     # Remove the value column from the player table
     op.drop_column("player", "value")
 
-    # Remove the team_participant_id and team_origin_id columns from the player table
-    op.drop_constraint("player_ibfk_1", "player", type_="foreignkey")
-    op.drop_column("player", "team_participant_id")
+    # Remove the team_participant column from the player table
+    op.drop_column("player", "team_participant")
 
     # Remove the participant_id column from the team table
     op.drop_constraint("team_ibfk_1", "team", type_="foreignkey")

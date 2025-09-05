@@ -79,7 +79,7 @@
             v-model="participantSelected" 
             :items="participants" 
             item-text="name" 
-            @change="player.team_participant_id = participantSelected.team_id"
+            @change="player.team_participant = participantSelected.team_name"
             solo
             flat
             hide-details
