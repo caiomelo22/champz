@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query, Response
 
 from app.db.participant import get_participants, get_participants_num, update_participant_budget
 from app.db.players import buy_player, get_player_by_id, get_player_transfers, get_players
-from app.db.team import get_participant_id_by_team_id
+from app.db.team import get_participant_id_by_team_name
 from app.db.position import list_positions
 from app.models.player import buy_player_model, player
 from app.utils.export import write_players_sheet, write_transfers_sheet
@@ -55,7 +55,7 @@ def list(
             )
 
     if team_participant:
-        where_clauses.append(f"team_participant_id = {team_participant}")
+        where_clauses.append(f"team_participant = '{team_participant}'")
 
     return get_players(where_clauses, limit_clause)
 
@@ -73,9 +73,12 @@ def get_sheet() -> t.Any:
         wb.active = i
 
         where_clause = [f"position_id = {position['id']}"]
-        limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
+        # limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
 
-        players = get_players(where_clauses=where_clause, limit_clause=limit_clause)
+        players = get_players(
+            where_clauses=where_clause,
+            # limit_clause=limit_clause
+        )
 
         write_players_sheet(wb.active, players)
     
@@ -98,7 +101,7 @@ def get_participant_sheet() -> t.Any:
         wb.create_sheet(index=i, title=participant.name)
         wb.active = i
 
-        where_clause = [f"team_participant_id = {participant.team_id}"]
+        where_clause = [f"team_participant = '{participant.team_name}'"]
 
         players = get_players(where_clauses=where_clause)
 
@@ -122,7 +125,7 @@ def buy(
     if not player_instance:
         raise HTTPException(status_code=404, detail="Player not found.")
 
-    if player_instance.team_participant_id:
+    if player_instance.team_participant:
         # Update original participant budget and reset player's purchase info
         update_participant_budget(player_instance.participant_id, player_instance.value)
         buy_player(player_id)
@@ -133,7 +136,7 @@ def buy(
     if not data.value:
         raise HTTPException(status_code=400, detail="Player value not valid")
 
-    participant_id = get_participant_id_by_team_id(data.team_participant)
+    participant_id = get_participant_id_by_team_name(data.team_participant)
     update_participant_budget(participant_id, -data.value)
     buy_player(player_id, data.team_participant, data.value)
 

@@ -3,7 +3,6 @@ list_participants_query = """
         p.id, 
         p.name, 
         p.budget, 
-        t.id as team_id,
         t.name as team_name, 
         t.image_path as team_image_path 
     FROM `fifa-db`.participant p

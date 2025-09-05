@@ -65,7 +65,7 @@ export default {
                 this.addParticipantDialog = false;
                 this.get_players_by_position_algorithm(this.positions[this.tab].id);
             }
-            const plTeamIndex = this.teams.map(x => x.id).indexOf(participant.team_id)
+            const plTeamIndex = this.teams.map(x => x.name).indexOf(participant.team_name)
             this.teams[plTeamIndex].participant_id = participant.id
         },
         get_participant_name(id) {
@@ -113,12 +113,12 @@ export default {
                 });
             this.playersLoading = false;
         },
-        async get_players_by_team(participant, idTeam) {
+        async get_players_by_team(participant, teamName) {
             this.currentParticipant = participant;
             let index = this.participants.map((x) => x.id).indexOf(participant.id);
             this.participants[index].team_loading_att = true;
             await this.$axios
-                .get(`player/list?team_participant=${idTeam}`)
+                .get(`player/list?team_participant=${teamName}`)
                 .then((response) => {
                     this.selectedTeam = response.data;
                 });
@@ -162,8 +162,8 @@ export default {
         },
         update_participant_budget(player, add) {
             let index = this.participants
-                .map((x) => x.team_id)
-                .indexOf(player.team_participant_id);
+                .map((x) => x.team_name)
+                .indexOf(player.team_participant);
             if (index != -1) {
                 if (add) {
                     this.participants[index].budget += player.value;
