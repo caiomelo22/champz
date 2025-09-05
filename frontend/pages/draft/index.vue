@@ -233,7 +233,7 @@
       />
     </v-dialog>
 
-    <v-dialog v-model="participantTeamDialog" width="700px" max-width="90%">
+    <v-dialog v-if="participantTeamDialog" v-model="participantTeamDialog" width="700px" max-width="90%">
       <ParticipantTeam 
         :selected-team="selectedTeam" 
         :current-participant="currentParticipant" 

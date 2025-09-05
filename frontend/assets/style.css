@@ -141,15 +141,6 @@ body {
   background: rgba(51, 48, 228, 0.5);
 }
 
-/* Remove old table styles since we're using a card-based layout now */
-.champz-table-wrapper {
-  display: none;
-}
-
-.champz-table {
-  display: none;
-}
-
 .v-card {
   background: rgba(30, 41, 59, 0.4) !important;
   backdrop-filter: blur(20px) !important;
