@@ -73,11 +73,11 @@ def get_sheet() -> t.Any:
         wb.active = i
 
         where_clause = [f"position_id = {position['id']}"]
-        # limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
+        limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
 
         players = get_players(
             where_clauses=where_clause,
-            # limit_clause=limit_clause
+            limit_clause=limit_clause
         )
 
         write_players_sheet(wb.active, players)
