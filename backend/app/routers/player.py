@@ -6,7 +6,8 @@ from io import BytesIO
 from fastapi import APIRouter, HTTPException, Query, Response
 
 from app.db.participant import get_participants, get_participants_num, update_participant_budget
-from app.db.players import buy_player, get_player_by_id, get_player_transfers, get_players
+from app.db.players import (buy_player, get_player_by_id, get_player_transfers, get_players,
+                            get_draft_player_ids)
 from app.db.team import get_participant_id_by_team_name
 from app.db.position import list_positions
 from app.models.player import buy_player_model, player
@@ -29,6 +30,7 @@ router = APIRouter()
 def list(
     position: str = Query(None, description="Filter by position"),
     team_participant: str = Query(None, description="Filter by team participant"),
+    draft_only: bool = Query(False, description="Only include players from sheet.xlsx"),
 ) -> t.List[player]:
     where_clauses = []
     limit_clause = ""
@@ -57,11 +59,24 @@ def list(
     if team_participant:
         where_clauses.append(f"team_participant = '{team_participant}'")
 
+    # Add draft filter if requested
+    if draft_only:
+        position_name = position_obj['name'] if position else None
+        draft_player_ids = get_draft_player_ids(position_name)
+        if draft_player_ids:
+            ids_str = "', '".join(draft_player_ids)
+            where_clauses.append(f"player.id IN ('{ids_str}')")
+        else:
+            # If no draft players found, return empty list
+            return []
+
     return get_players(where_clauses, limit_clause)
 
 
 @router.get("/sheet")
-def get_sheet() -> t.Any:
+def get_sheet(
+    draft_only: bool = Query(False, description="Only include players from sheet.xlsx")
+) -> t.Any:
     positions = list_positions()
 
     wb = openpyxl.Workbook()
@@ -73,6 +88,17 @@ def get_sheet() -> t.Any:
         wb.active = i
 
         where_clause = [f"position_id = {position['id']}"]
+        
+        # Add draft filter if requested
+        if draft_only:
+            draft_player_ids = get_draft_player_ids(position['name'])
+            if draft_player_ids:
+                ids_str = "', '".join(draft_player_ids)
+                where_clause.append(f"player.id IN ('{ids_str}')")
+            else:
+                # If no draft players found, skip this position
+                continue
+        
         limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
 
         players = get_players(
@@ -166,6 +192,9 @@ def get_transfers_sheet() -> t.Any:
             wb.active = sheet_index
 
         current_team_players.append(player)
+
+    if current_team_players:
+        write_transfers_sheet(wb.active, current_team_players)
 
     # Serialize the workbook to BytesIO
     stream = BytesIO()
