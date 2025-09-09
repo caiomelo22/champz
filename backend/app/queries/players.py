@@ -55,5 +55,5 @@ player_transfers_query = """
     WHERE 
         p.team_participant IS NOT NULL
         AND p.team_participant != p.team_origin
-    ORDER BY team_from, team_to, overall;
+    ORDER BY team_from, team_to, overall DESC;
 """
