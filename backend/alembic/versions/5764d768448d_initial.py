@@ -6,6 +6,7 @@ Create Date: 2023-08-02 11:03:40.215139
 
 """
 from datetime import datetime
+
 import sqlalchemy as sa
 
 from alembic import op
@@ -37,7 +38,12 @@ def upgrade():
     op.create_table(
         "group_participant",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "group_id",
+            sa.Integer,
+            sa.ForeignKey("group.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column(
             "participant_id",
             sa.Integer,
@@ -50,7 +56,12 @@ def upgrade():
     op.create_table(
         "match",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column("group_id", sa.Integer, sa.ForeignKey("group.id", ondelete="CASCADE"), nullable=True),
+        sa.Column(
+            "group_id",
+            sa.Integer,
+            sa.ForeignKey("group.id", ondelete="CASCADE"),
+            nullable=True,
+        ),
         sa.Column(
             "participant_1_id",
             sa.Integer,
@@ -68,7 +79,13 @@ def upgrade():
         sa.Column("round", sa.Integer, nullable=False),
         sa.Column("penalties", sa.Boolean, nullable=True),
         sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
-        sa.Column("updated_at", sa.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow),
+        sa.Column(
+            "updated_at",
+            sa.DateTime,
+            nullable=False,
+            default=datetime.utcnow,
+            onupdate=datetime.utcnow,
+        ),
     )
 
 

@@ -4,11 +4,9 @@ import typing as t
 from fastapi import HTTPException
 
 from app.models.team import team
-from app.queries.teams import (
-    add_participant_to_team_query,
-    get_participant_id_by_team_query,
-    get_most_popular_teams_query,
-)
+from app.queries.teams import (add_participant_to_team_query,
+                               get_most_popular_teams_query,
+                               get_participant_id_by_team_query)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance

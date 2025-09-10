@@ -1,18 +1,15 @@
 # db/crud.py
 
-import typing as t
-import openpyxl
 import os
+import typing as t
+
+import openpyxl
 
 from app.models.player import player
-from app.queries.players import (
-    buy_player_query,
-    change_players_team_query,
-    player_exists_by_id_query,
-    players_query,
-    reset_players_team_by_participant_id_query,
-    player_transfers_query,
-)
+from app.queries.players import (buy_player_query, change_players_team_query,
+                                 player_exists_by_id_query,
+                                 player_transfers_query, players_query,
+                                 reset_players_team_by_participant_id_query)
 from database.db import Database
 
 database = Database()  # Initialize the custom database instance
@@ -93,26 +90,34 @@ def get_draft_player_ids(position_name: str = None) -> t.List[str]:
         # In local development, look in the backend directory
         possible_paths = [
             "/app/sheet.xlsx",  # Docker path
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "sheet.xlsx"),  # Local backend dir
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "sheet.xlsx"),  # Project root
+            os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                "sheet.xlsx",
+            ),  # Local backend dir
+            os.path.join(
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                ),
+                "sheet.xlsx",
+            ),  # Project root
         ]
-        
+
         sheet_path = None
         for path in possible_paths:
             if os.path.exists(path):
                 sheet_path = path
                 break
-        
+
         if not sheet_path:
             # If sheet.xlsx doesn't exist in any expected location, return empty list
             print("sheet.xlsx not found in any expected location")
             return []
-        
+
         # Load the workbook
         workbook = openpyxl.load_workbook(sheet_path)
-        
+
         player_names = []
-        
+
         if position_name:
             # Try to find the worksheet with the position name
             worksheet = None
@@ -120,15 +125,17 @@ def get_draft_player_ids(position_name: str = None) -> t.List[str]:
                 if sheet_name.lower() == position_name.lower():
                     worksheet = workbook[sheet_name]
                     break
-            
+
             if not worksheet:
                 print(f"Position sheet '{position_name}' not found in workbook")
                 workbook.close()
                 return []
-            
+
             # Read player names from column A (starting from row 2 to skip header)
             for row in worksheet.iter_rows(min_row=2, max_col=1, values_only=True):
-                if row[0] and str(row[0]).strip():  # If cell is not empty and not just whitespace
+                if (
+                    row[0] and str(row[0]).strip()
+                ):  # If cell is not empty and not just whitespace
                     player_names.append(str(row[0]).strip())
         else:
             # If no position specified, read from all sheets
@@ -137,24 +144,26 @@ def get_draft_player_ids(position_name: str = None) -> t.List[str]:
                 for row in worksheet.iter_rows(min_row=2, max_col=1, values_only=True):
                     if row[0] and str(row[0]).strip():
                         player_names.append(str(row[0]).strip())
-        
+
         workbook.close()
-        
+
         # Now convert player names to player IDs by querying the database
         if not player_names:
             return []
-        
+
         # Escape single quotes in player names to prevent SQL injection
         escaped_names = [name.replace("'", "''") for name in player_names]
         names_str = "', '".join(escaped_names)
         query = f"SELECT id FROM `fifa-db`.player WHERE name IN ('{names_str}')"
-        
+
         results = database.execute_select_query(query)
-        player_ids = [str(result['id']) for result in results]
-        
-        print(f"Found {len(player_names)} players in sheet{f' ({position_name})' if position_name else ''}, matched {len(player_ids)} in database")
+        player_ids = [str(result["id"]) for result in results]
+
+        print(
+            f"Found {len(player_names)} players in sheet{f' ({position_name})' if position_name else ''}, matched {len(player_ids)} in database"
+        )
         return player_ids
-        
+
     except Exception as e:
         # If any error occurs, log it and return empty list
         print(f"Error reading sheet.xlsx: {e}")

@@ -7,7 +7,8 @@ from app.db.participant import (create_participant, delete_participant,
                                 update_participant)
 from app.db.players import (change_players_team,
                             reset_players_team_by_participant_id)
-from app.db.team import add_participant_to_team, get_participant_id_by_team_name
+from app.db.team import (add_participant_to_team,
+                         get_participant_id_by_team_name)
 from app.models.participant import manage_participant_model, participant
 
 router = APIRouter()

@@ -1,15 +1,16 @@
 # routes/users.py
 import typing as t
-import openpyxl
 from io import BytesIO
 
+import openpyxl
 from fastapi import APIRouter, HTTPException, Query, Response
 
-from app.db.participant import get_participants, get_participants_num, update_participant_budget
-from app.db.players import (buy_player, get_player_by_id, get_player_transfers, get_players,
-                            get_draft_player_ids)
-from app.db.team import get_participant_id_by_team_name
+from app.db.participant import (get_participants, get_participants_num,
+                                update_participant_budget)
+from app.db.players import (buy_player, get_draft_player_ids, get_player_by_id,
+                            get_player_transfers, get_players)
 from app.db.position import list_positions
+from app.db.team import get_participant_id_by_team_name
 from app.models.player import buy_player_model, player
 from app.utils.export import write_players_sheet, write_transfers_sheet
 
@@ -30,7 +31,7 @@ router = APIRouter()
 def list(
     position: str = Query(None, description="Filter by position"),
     team_participant: str = Query(None, description="Filter by team participant"),
-    draft_only: bool = Query(False, description="Only include players from sheet.xlsx"),
+    draft_only: bool = Query(True, description="Only include players from sheet.xlsx"),
 ) -> t.List[player]:
     where_clauses = []
     limit_clause = ""
@@ -40,10 +41,10 @@ def list(
         position_where_clause = f" WHERE id = {position}"
 
     positions_filtered = list_positions(where_clause=position_where_clause)
-    
+
     if not len(positions_filtered):
         raise HTTPException(status_code=404, detail="Position not found.")
-    
+
     position_obj = positions_filtered[0]
 
     if position:
@@ -52,16 +53,14 @@ def list(
         participants_number = get_participants_num()
 
         if participants_number:
-            limit_clause = (
-                f" LIMIT {int(participants_number * _limit_by_position[position_obj['name']])}"
-            )
+            limit_clause = f" LIMIT {int(participants_number * _limit_by_position[position_obj['name']])}"
 
     if team_participant:
         where_clauses.append(f"team_participant = '{team_participant}'")
 
     # Add draft filter if requested
     if draft_only:
-        position_name = position_obj['name'] if position else None
+        position_name = position_obj["name"] if position else None
         draft_player_ids = get_draft_player_ids(position_name)
         if draft_player_ids:
             ids_str = "', '".join(draft_player_ids)
@@ -75,7 +74,7 @@ def list(
 
 @router.get("/sheet")
 def get_sheet(
-    draft_only: bool = Query(False, description="Only include players from sheet.xlsx")
+    draft_only: bool = Query(True, description="Only include players from sheet.xlsx")
 ) -> t.Any:
     positions = list_positions()
 
@@ -88,33 +87,36 @@ def get_sheet(
         wb.active = i
 
         where_clause = [f"position_id = {position['id']}"]
-        
+
         # Add draft filter if requested
         if draft_only:
-            draft_player_ids = get_draft_player_ids(position['name'])
+            draft_player_ids = get_draft_player_ids(position["name"])
             if draft_player_ids:
                 ids_str = "', '".join(draft_player_ids)
                 where_clause.append(f"player.id IN ('{ids_str}')")
             else:
                 # If no draft players found, skip this position
                 continue
-        
-        limit_clause = f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
 
-        players = get_players(
-            where_clauses=where_clause,
-            limit_clause=limit_clause
+        limit_clause = (
+            f" LIMIT {int(_limit_by_position[position['name']] * n_participants)}"
         )
 
+        players = get_players(where_clauses=where_clause, limit_clause=limit_clause)
+
         write_players_sheet(wb.active, players)
-    
+
     # Serialize the workbook to BytesIO
     stream = BytesIO()
     wb.save(stream)
     stream.seek(0)
 
     # Return the file-like object in response
-    return Response(content=stream.getvalue(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": "attachment; filename=sheet.xlsx"})
+    return Response(
+        content=stream.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=sheet.xlsx"},
+    )
 
 
 @router.get("/sheet-by-participant")
@@ -132,14 +134,18 @@ def get_participant_sheet() -> t.Any:
         players = get_players(where_clauses=where_clause)
 
         write_players_sheet(wb.active, players)
-    
+
     # Serialize the workbook to BytesIO
     stream = BytesIO()
     wb.save(stream)
     stream.seek(0)
 
     # Return the file-like object in response
-    return Response(content=stream.getvalue(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": "attachment; filename=sheet.xlsx"})
+    return Response(
+        content=stream.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=sheet.xlsx"},
+    )
 
 
 @router.post("/buy/{player_id}")
@@ -187,7 +193,7 @@ def get_transfers_sheet() -> t.Any:
 
             current_team = player["team_from"]
             sheet_index += 1
-            
+
             wb.create_sheet(index=sheet_index, title=current_team)
             wb.active = sheet_index
 
@@ -202,4 +208,8 @@ def get_transfers_sheet() -> t.Any:
     stream.seek(0)
 
     # Return the file-like object in response
-    return Response(content=stream.getvalue(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": "attachment; filename=sheet.xlsx"})
+    return Response(
+        content=stream.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=sheet.xlsx"},
+    )
