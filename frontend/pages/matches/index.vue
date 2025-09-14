@@ -32,6 +32,7 @@
                     small 
                     @click="previous_stage_click"
                     class="nav-btn"
+                    disabled
                   >
                     <v-icon size="20" color="#3b82f6">mdi-chevron-left</v-icon>
                   </v-btn>
@@ -114,6 +115,7 @@
                     small 
                     @click="next_stage_click"
                     class="nav-btn"
+                    :disabled="get_round_name() == 'Final'"
                   >
                     <v-icon size="20" color="#3b82f6">mdi-chevron-right</v-icon>
                   </v-btn>
