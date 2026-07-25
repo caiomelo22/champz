@@ -1,19 +1,66 @@
 <template>
-  <div id="nav">
-    <nuxt-link :class="{active: $route.path == '/draft'}" to="/draft">Draft</nuxt-link>
-    <nuxt-link :class="{active: $route.path == '/matches'}" to="/matches">Matches</nuxt-link>
+  <div id="nav-wrapper">
+    <div id="nav">
+      <template v-if="championshipId">
+        <nuxt-link :to="`/championship/${championshipId}/draft`" :class="{active: isDraftPage}">Draft</nuxt-link>
+        <nuxt-link :to="`/championship/${championshipId}/matches`" :class="{active: isMatchesPage}">Matches</nuxt-link>
+      </template>
+      <template v-else-if="isAuthenticated">
+        <nuxt-link to="/dashboard" :class="{active: $route.path === '/dashboard'}">Dashboard</nuxt-link>
+      </template>
+      <template v-else>
+        <nuxt-link :class="{active: $route.path == '/draft'}" to="/draft">Draft</nuxt-link>
+        <nuxt-link :class="{active: $route.path == '/matches'}" to="/matches">Matches</nuxt-link>
+      </template>
+    </div>
+    <div v-if="isAuthenticated" class="user-section">
+      <span class="user-email">{{ userEmail }}</span>
+      <v-btn icon small @click="logout" class="logout-btn">
+        <v-icon size="18" color="rgba(203,213,225,0.8)">mdi-logout</v-icon>
+      </v-btn>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  
+  computed: {
+    isAuthenticated() {
+      return this.$store.getters['auth/isAuthenticated']
+    },
+    userEmail() {
+      const user = this.$store.getters['auth/getUser']
+      return user ? user.email : ''
+    },
+    championshipId() {
+      return this.$route.params.id || null
+    },
+    isDraftPage() {
+      return this.$route.path.includes('/draft')
+    },
+    isMatchesPage() {
+      return this.$route.path.includes('/matches')
+    },
+  },
+  methods: {
+    logout() {
+      this.$store.dispatch('auth/logout')
+      this.$router.push('/login')
+    },
+  },
 }
 </script>
 
 <style scoped>
+#nav-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
 #nav {
-  margin: 0px 0px 24px 0px;
   padding: 0;
   text-align: center;
   background: rgba(30, 41, 59, 0.8);
@@ -22,9 +69,6 @@ export default {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(100, 116, 139, 0.3);
   display: inline-flex;
-  width: auto;
-  margin-left: 50%;
-  transform: translateX(-50%);
 }
 
 #nav a {
@@ -72,5 +116,24 @@ export default {
   color: white;
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
   border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.user-section {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  color: rgba(203, 213, 225, 0.7);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.logout-btn {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border: 1px solid rgba(100, 116, 139, 0.3);
 }
 </style>

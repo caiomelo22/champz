@@ -28,6 +28,7 @@ export default {
     '@/plugins/bootstrap.js',
     '@/plugins/iview.js',
     '@/plugins/animate.js',
+    '@/plugins/axios-auth.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -78,11 +79,12 @@ export default {
   },
 
   router: {
+    middleware: ['auth'],
     extendRoutes(routes, resolve) {
-      // Add redirect from root to draft
+      // Add redirect from root to login/dashboard
       routes.push({
         path: '/',
-        redirect: '/draft'
+        redirect: '/dashboard'
       })
     }
   }
