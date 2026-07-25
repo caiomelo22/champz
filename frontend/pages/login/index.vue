@@ -108,6 +108,21 @@ export default {
     }
   },
   mounted() {
+    // Handle Google OAuth callback token
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('token')
+    if (token) {
+      this.$store.commit('auth/SET_TOKEN', token)
+      this.$cookies.set('auth_token', token, {
+        path: '/',
+        maxAge: 60 * 60 * 24,
+      })
+      this.$store.dispatch('auth/fetchUser').then(() => {
+        this.$router.push('/dashboard')
+      })
+      return
+    }
+
     if (this.$store.getters['auth/isAuthenticated']) {
       this.$router.push('/dashboard')
     }
@@ -157,7 +172,7 @@ export default {
     },
     loginWithGoogle() {
       const baseUrl = process.env.VUE_APP_BASE_URL || 'http://localhost:8000'
-      window.location.href = `${baseUrl}/auth/google/authorize`
+      window.location.href = `${baseUrl}/auth/google/login`
     },
   },
 }

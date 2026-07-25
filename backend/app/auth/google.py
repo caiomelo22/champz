@@ -1,6 +1,9 @@
 import os
 
+from dotenv import load_dotenv
 from httpx_oauth.clients.google import GoogleOAuth2
+
+load_dotenv()
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")

@@ -2,14 +2,18 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.google import google_oauth_client
-from app.auth.users import auth_backend, fastapi_users, get_user_manager
-from app.db.base import engine, Base
+from app.auth.users import auth_backend, fastapi_users, get_user_manager, get_user_db, get_jwt_strategy, UserManager
+from app.db.base import engine, Base, get_async_session
 from app.models_orm import *  # noqa: F401,F403 – register all ORM models
+from app.models_orm.user import OAuthAccount, User
+from fastapi_users.db import SQLAlchemyUserDatabase
 from app.routers import group, match, participant, player, position, team
 from app.routers.v2 import player as player_v2
 from app.routers.v2 import participant as participant_v2
@@ -79,10 +83,63 @@ app.include_router(
     tags=["users"],
 )
 app.include_router(
-    fastapi_users.get_oauth_router(google_oauth_client, auth_backend, "GOOGLE-SECRET"),
+    fastapi_users.get_oauth_router(
+        google_oauth_client,
+        auth_backend,
+        "GOOGLE-SECRET",
+        associate_by_email=True,
+        is_verified_by_default=True,
+        redirect_url="http://localhost:8000/auth/google/callback",
+    ),
     prefix="/auth/google",
     tags=["auth"],
 )
+
+GOOGLE_REDIRECT_URI = "http://localhost:8000/auth/google/redirect-callback"
+FRONTEND_LOGIN_URL = "http://localhost:8080/login"
+
+
+@app.get("/auth/google/login")
+async def google_login_redirect():
+    """Redirect to Google OAuth consent screen."""
+    authorization_url = await google_oauth_client.get_authorization_url(
+        redirect_uri=GOOGLE_REDIRECT_URI,
+        scope=["openid", "email", "profile"],
+    )
+    return RedirectResponse(authorization_url)
+
+
+@app.get("/auth/google/redirect-callback")
+async def google_redirect_callback(
+    request: Request,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Handle Google callback, generate JWT, and redirect to frontend."""
+    code = request.query_params.get("code")
+    token_data = await google_oauth_client.get_access_token(code, GOOGLE_REDIRECT_URI)
+    account_id, account_email = await google_oauth_client.get_id_email(
+        token_data["access_token"]
+    )
+
+    user_db = SQLAlchemyUserDatabase(session, User, OAuthAccount)
+    user_manager = UserManager(user_db)
+
+    user = await user_manager.oauth_callback(
+        oauth_name="google",
+        access_token=token_data["access_token"],
+        account_id=account_id,
+        account_email=account_email,
+        expires_at=token_data.get("expires_at"),
+        refresh_token=token_data.get("refresh_token"),
+        request=request,
+        associate_by_email=True,
+        is_verified_by_default=True,
+    )
+
+    jwt_strategy = get_jwt_strategy()
+    jwt_token = await jwt_strategy.write_token(user)
+
+    return RedirectResponse(f"{FRONTEND_LOGIN_URL}?token={jwt_token}")
 
 # ── Championship routes (new, scoped) ───────────────────────
 app.include_router(championship_router, prefix="/championship", tags=["championship"])
