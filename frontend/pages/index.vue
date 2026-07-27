@@ -5,8 +5,7 @@
 <script>
 export default {
   mounted() {
-    // Redirect to draft page when the app loads
-    this.$router.push('/draft')
+    this.$router.push('/dashboard')
   }
 }
 </script>

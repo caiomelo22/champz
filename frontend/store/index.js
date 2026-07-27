@@ -17,14 +17,10 @@ export const mutations = {
 export const actions = {
   async nuxtServerInit(store, context) {
     try {
-      // const response = await context.$axios.get('https:// ...')
-      const response = {data: 'Message via nextServerInit'}
-      store.commit('reset_msg', response.data)
+      await store.dispatch('auth/initAuth')
     }
     catch(err) {
-      context.error({
-        message: err.message
-      })
+      // Auth init failed silently
     }
   }
 }

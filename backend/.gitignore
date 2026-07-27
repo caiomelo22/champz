@@ -1,5 +1,6 @@
 # User specific files
 legacy
+static
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

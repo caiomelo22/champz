@@ -9,6 +9,10 @@ from alembic import context
 
 load_dotenv()
 
+# Import all ORM models so metadata is populated
+from app.db.base import Base
+from app.models_orm import *  # noqa: F401,F403
+
 # Rest of the env.py file remains the same...
 
 # Read the database credentials from environment variables
@@ -33,9 +37,7 @@ fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

@@ -10,7 +10,8 @@ export default {
     teams: {
       type: Array,
       default: []
-    }
+    },
+    championshipId: { type: [String, Number], default: null }
   },
   created() {
     this.participant = this.participantProp;
@@ -23,9 +24,10 @@ export default {
     async add_participant () {
       this.updatingParticipant = true;
       this.participant.team = this.selectedTeam.name;
+      const prefix = this.championshipId ? `championship/${this.championshipId}/` : '';
       if (!this.participant.id) {
         await this.$axios
-          .post("participant/create", this.participant)
+          .post(`${prefix}participant/create`, this.participant)
           .then((response) => {
             this.$emit('update', response.data)
           })
@@ -33,7 +35,7 @@ export default {
       } else {
         await this.$axios
           .patch(
-            `participant/update/${this.participant.id}`,
+            `${prefix}participant/update/${this.participant.id}`,
             this.participant
           )
           .then((response) => {

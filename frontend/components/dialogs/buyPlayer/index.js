@@ -3,7 +3,8 @@ export default {
   name: 'BuyPlayerDialog',
   props: {
     participants: Array,
-    currentPlayer: Object
+    currentPlayer: Object,
+    championshipId: { type: [String, Number], default: null }
   },
   data: () => ({
     gs: new GeneralServices(),
@@ -17,10 +18,19 @@ export default {
   methods: {
     async buy_player() {
       this.updatingPlayer = true;
-      this.player.team_participant = this.player.team_participant;
-      let url = `player/buy/${this.currentPlayer.id}`;
+      let url, body;
+      if (this.championshipId) {
+        url = `championship/${this.championshipId}/player/buy/${this.currentPlayer.id}`;
+        body = {
+          participant_id: this.participantSelected ? this.participantSelected.id : null,
+          value: this.player.value ? parseInt(this.player.value) : null
+        };
+      } else {
+        url = `player/buy/${this.currentPlayer.id}`;
+        body = this.player;
+      }
       await this.$axios
-        .post(url, this.player)
+        .post(url, body)
         .then((response) => {
           this.$emit('update', response.data)
         })
