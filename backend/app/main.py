@@ -9,12 +9,11 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.google import google_oauth_client
-from app.auth.users import auth_backend, fastapi_users, get_user_manager, get_user_db, get_jwt_strategy, UserManager
+from app.auth.users import auth_backend, fastapi_users, get_jwt_strategy, UserManager
 from app.db.base import engine, Base, get_async_session
 from app.models_orm import *  # noqa: F401,F403 – register all ORM models
 from app.models_orm.user import OAuthAccount, User
 from fastapi_users.db import SQLAlchemyUserDatabase
-from app.routers import group, match, participant, player, position, team
 from app.routers.v2 import player as player_v2
 from app.routers.v2 import participant as participant_v2
 from app.routers.v2 import team as team_v2
@@ -151,11 +150,3 @@ app.include_router(team_v2.router, prefix="/team", tags=["team"])
 app.include_router(position_v2.router, prefix="/position", tags=["position"])
 app.include_router(match_v2.router, prefix="/match", tags=["match"])
 app.include_router(group_v2.router, prefix="/championship", tags=["group"])
-
-# ── Legacy routes (kept for backward compatibility) ─────────
-app.include_router(player.router, prefix="/legacy/player", tags=["legacy"])
-app.include_router(position.router, prefix="/legacy/position", tags=["legacy"])
-app.include_router(team.router, prefix="/legacy/team", tags=["legacy"])
-app.include_router(participant.router, prefix="/legacy/participant", tags=["legacy"])
-app.include_router(match.router, prefix="/legacy/match", tags=["legacy"])
-app.include_router(group.router, prefix="/legacy/group", tags=["legacy"])

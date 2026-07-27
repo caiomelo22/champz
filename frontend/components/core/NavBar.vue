@@ -8,10 +8,6 @@
       <template v-else-if="isAuthenticated">
         <nuxt-link to="/dashboard" :class="{active: $route.path === '/dashboard'}">Dashboard</nuxt-link>
       </template>
-      <template v-else>
-        <nuxt-link :class="{active: $route.path == '/draft'}" to="/draft">Draft</nuxt-link>
-        <nuxt-link :class="{active: $route.path == '/matches'}" to="/matches">Matches</nuxt-link>
-      </template>
     </div>
     <div v-if="isAuthenticated" class="user-section">
       <span class="user-email">{{ userEmail }}</span>
@@ -36,10 +32,10 @@ export default {
       return this.$route.params.id || null
     },
     isDraftPage() {
-      return this.$route.path.includes('/draft')
+      return this.$route.path.includes('/championship/') && this.$route.path.includes('/draft')
     },
     isMatchesPage() {
-      return this.$route.path.includes('/matches')
+      return this.$route.path.includes('/championship/') && this.$route.path.includes('/matches')
     },
   },
   methods: {
