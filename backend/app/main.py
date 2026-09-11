@@ -1,6 +1,7 @@
 # app/main.py
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,7 @@ from app.auth.users import auth_backend, fastapi_users, get_jwt_strategy, UserMa
 from app.db.base import engine, Base, get_async_session
 from app.models_orm import *  # noqa: F401,F403 – register all ORM models
 from app.models_orm.user import OAuthAccount, User
+from app.tasks.auction_finalizer import run_auction_finalizer
 from fastapi_users.db import SQLAlchemyUserDatabase
 from app.routers.v2 import player as player_v2
 from app.routers.v2 import participant as participant_v2
@@ -20,6 +22,7 @@ from app.routers.v2 import team as team_v2
 from app.routers.v2 import position as position_v2
 from app.routers.v2 import match as match_v2
 from app.routers.v2 import group as group_v2
+from app.routers.v2 import auction as auction_v2
 from app.routers.championship import router as championship_router
 from fastapi_users.schemas import BaseUser, BaseUserCreate, BaseUserUpdate
 
@@ -43,7 +46,13 @@ async def lifespan(app: FastAPI):
     # Create tables on startup (for development; use alembic in production)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
+    finalizer_task = asyncio.create_task(run_auction_finalizer())
+    try:
+        yield
+    finally:
+        finalizer_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await finalizer_task
 
 
 app = FastAPI(lifespan=lifespan)
@@ -73,6 +82,11 @@ app.include_router(
 )
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
+app.include_router(
+    fastapi_users.get_verify_router(UserRead),
     prefix="/auth",
     tags=["auth"],
 )
@@ -150,3 +164,4 @@ app.include_router(team_v2.router, prefix="/team", tags=["team"])
 app.include_router(position_v2.router, prefix="/position", tags=["position"])
 app.include_router(match_v2.router, prefix="/match", tags=["match"])
 app.include_router(group_v2.router, prefix="/championship", tags=["group"])
+app.include_router(auction_v2.router, prefix="/championship", tags=["auction"])

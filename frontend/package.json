@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "set NODE_OPTIONS=--openssl-legacy-provider && set PORT=8080 && nuxt",
-    "build": "nuxt build",
-    "start": "nuxt start",
-    "generate": "nuxt generate"
+    "dev": "node --openssl-legacy-provider node_modules/nuxt/bin/nuxt.js --port 8080",
+    "build": "node --openssl-legacy-provider node_modules/nuxt/bin/nuxt.js build",
+    "start": "node --openssl-legacy-provider node_modules/nuxt/bin/nuxt.js start",
+    "generate": "node --openssl-legacy-provider node_modules/nuxt/bin/nuxt.js generate"
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.13.6",

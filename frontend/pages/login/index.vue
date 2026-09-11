@@ -3,10 +3,19 @@
     <div class="login-card">
       <div class="login-header">
         <h1 class="login-title">Champz</h1>
-        <p class="login-subtitle">{{ isRegistering ? 'Create your account' : 'Sign in to continue' }}</p>
+          <p class="login-subtitle">{{ subtitle }}</p>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="login-form">
+        <div v-if="verificationSent" class="verification-state">
+          <v-icon color="#10b981" size="48">mdi-email-check-outline</v-icon>
+          <p>We sent a verification link to <strong>{{ email }}</strong>.</p>
+          <v-btn text :loading="resending" @click="resendVerification">
+            Send another link
+          </v-btn>
+          <v-btn text @click="resetToLogin">Back to sign in</v-btn>
+        </div>
+
+        <form v-else @submit.prevent="handleSubmit" class="login-form">
         <v-text-field
           v-model="email"
           label="Email"
@@ -105,7 +114,15 @@ export default {
       isRegistering: false,
       loading: false,
       error: null,
+      verificationSent: false,
+      resending: false,
     }
+  },
+  computed: {
+    subtitle() {
+      if (this.verificationSent) return 'Verify your email to continue'
+      return this.isRegistering ? 'Create your account' : 'Sign in to continue'
+    },
   },
   mounted() {
     // Handle Google OAuth callback token
@@ -143,16 +160,19 @@ export default {
             email: this.email,
             password: this.password,
           })
-          // Auto-login after registration
-          await this.$store.dispatch('auth/login', {
-            email: this.email,
-            password: this.password,
-          })
+          this.verificationSent = true
+          return
         } else {
           await this.$store.dispatch('auth/login', {
             email: this.email,
             password: this.password,
           })
+          const user = this.$store.getters['auth/getUser']
+          if (user && !user.is_verified) {
+            await this.$store.dispatch('auth/logout')
+            this.verificationSent = true
+            return
+          }
         }
         this.$router.push('/dashboard')
       } catch (err) {
@@ -169,6 +189,23 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+    async resendVerification() {
+      this.resending = true
+      try {
+        await this.$store.dispatch('auth/requestVerification', this.email)
+        this.$toast.success('A new verification link was requested.')
+      } catch {
+        this.$toast.error('The verification email could not be sent.')
+      } finally {
+        this.resending = false
+      }
+    },
+    resetToLogin() {
+      this.verificationSent = false
+      this.isRegistering = false
+      this.password = ''
+      this.confirmPassword = ''
     },
     loginWithGoogle() {
       const baseUrl = process.env.VUE_APP_BASE_URL || 'http://localhost:8000'
@@ -221,6 +258,16 @@ export default {
 
 .login-form {
   margin-bottom: 16px;
+}
+
+.verification-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: rgba(226, 232, 240, 0.9);
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .login-input {

@@ -49,7 +49,15 @@ export const actions = {
   },
 
   async register(_, { email, password }) {
-    await this.$axios.post('auth/register', { email, password })
+      return this.$axios.post('auth/register', { email, password })
+    },
+
+    async requestVerification(_, email) {
+      return this.$axios.post('auth/request-verify-token', { email })
+    },
+
+    async verifyEmail(_, token) {
+      return this.$axios.post('auth/verify', { token })
   },
 
   async fetchUser({ commit, state }) {
