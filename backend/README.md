@@ -23,6 +23,12 @@ Install dependencies and apply migrations:
 
 Start the API from this directory:
 
+```bash
+./start.sh
+```
+
+Or run Uvicorn directly from PowerShell:
+
 ```powershell
 .\env\Scripts\python.exe -m uvicorn main:app --reload --port 8000
 ```
