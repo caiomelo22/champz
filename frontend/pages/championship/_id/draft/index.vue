@@ -272,6 +272,16 @@
                         <v-icon size="18" color="#ef4444">mdi-close</v-icon>
                       </v-btn>
                       <v-btn
+                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'cancelled'"
+                        icon
+                        small
+                        class="action-btn"
+                        title="Restart auction"
+                        @click="edit_auction(auction_for(player.id))"
+                      >
+                        <v-icon size="18" color="#3b82f6">mdi-restart</v-icon>
+                      </v-btn>
+                      <v-btn
                         v-if="can_bid(auction_for(player.id))"
                         small
                         color="primary"
@@ -335,6 +345,9 @@
         :championship-id="championshipId"
         :auction="currentAuction"
         :available-budget="availableBudget"
+        :participants="participants"
+        :is-owner="isOwner"
+        :current-participant-id="linkedManagerParticipantId"
         @close="placeBidDialog = false"
         @saved="bid_saved"
       />
@@ -342,6 +355,7 @@
   </div>
 </template>
 
+<script src="./index"></script>
 <style lang="scss" scoped>
 .draft-container {
   padding: 0 24px;
@@ -888,4 +902,3 @@
   }
 }
 </style>
-<script src="./index"></script>

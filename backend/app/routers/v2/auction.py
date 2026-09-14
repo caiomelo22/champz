@@ -38,6 +38,7 @@ class UpdateAuctionModel(BaseModel):
 
 class PlaceBidModel(BaseModel):
     amount: int = Field(gt=0)
+    participant_id: t.Optional[int] = None
 
 
 class AuctionResponse(BaseModel):
@@ -213,15 +214,26 @@ async def submit_bid(
     session: AsyncSession = Depends(get_async_session),
 ):
     access = await get_championship_access(session, championship_id, user)
-    if not user.is_verified or not access.participant:
+    if access.role == "owner":
+        bidder_participant_id = data.participant_id or (
+            access.participant.id if access.participant else None
+        )
+        if bidder_participant_id is None:
+            raise HTTPException(status_code=400, detail="Select a participant to place the bid.")
+    elif user.is_verified and access.participant:
+        if data.participant_id is not None and data.participant_id != access.participant.id:
+            raise HTTPException(status_code=403, detail="Participants can only bid for themselves.")
+        bidder_participant_id = access.participant.id
+    else:
         raise HTTPException(status_code=403, detail="A verified linked participant is required to bid.")
-    
+
     _, participant = await place_bid(
         session,
         championship_id,
         auction_id,
         user.id,
         data.amount,
+        bidder_participant_id=bidder_participant_id,
     )
     auction = await _load_auction(session, championship_id, auction_id)
     return BidResultResponse(

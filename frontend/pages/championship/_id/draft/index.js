@@ -54,13 +54,32 @@ export default {
     myParticipant() {
       return this.participants.find(participant => participant.id === this.myParticipantId) || null
     },
+    linkedManagerParticipantId() {
+      if (!this.isOwner) {
+        return this.myParticipantId
+      }
+      const participantById = this.participants.find(
+        participant => String(participant.id) === String(this.myParticipantId)
+      )
+      if (participantById) {
+        return participantById.id
+      }
+      const user = this.$store.getters['auth/getUser']
+      const email = user && user.email ? user.email.trim().toLowerCase() : null
+      const participantByEmail = email
+        ? this.participants.find(
+          participant => participant.user_email && participant.user_email.trim().toLowerCase() === email
+        )
+        : null
+      return participantByEmail ? participantByEmail.id : null
+    },
     availableBudget() {
       return this.myParticipant && this.myParticipant.budget != null ? this.myParticipant.budget : 0
     },
   },
   watch: {
     participantTeamDialog() {
-      if (!this.participantTeamDialog) this.selectedTeam = []
+      if (!this.participantTeamDialog) { this.selectedTeam = [] }
     },
     tab() {
       if (this.positions[this.tab]) {
@@ -72,7 +91,7 @@ export default {
   async created() {
     await this.get_championship()
     await this.get_participants()
-    if (this.isOwner) await this.get_most_popular_teams()
+    if (this.isOwner) { await this.get_most_popular_teams() }
     await this.get_positions()
     await this.get_auctions()
     this.pollingTimer = window.setInterval(this.get_auctions, 3000)
@@ -93,7 +112,7 @@ export default {
       }
     },
     async get_auctions() {
-      if (this.auctionPolling) return
+      if (this.auctionPolling) { return }
       this.auctionPolling = true
       try {
         const previous = this.auctionsByPlayer
@@ -109,7 +128,7 @@ export default {
           if (oldAuction && oldAuction.is_current_user_leader && !auction.is_current_user_leader && auction.status === 'open') {
             this.$toast.info(`You were outbid for ${auction.player_name}.`)
           }
-          if (oldAuction && oldAuction.status === 'open' && auction.status === 'closed') refreshDraft = true
+          if (oldAuction && oldAuction.status === 'open' && auction.status === 'closed') { refreshDraft = true }
         })
         this.auctionsByPlayer = next
         if (refreshDraft && this.positions[this.tab]) {
@@ -131,7 +150,7 @@ export default {
     },
     can_bid(auction) {
       return Boolean(
-        this.myParticipantId &&
+        (this.isOwner ? this.participants.length : this.myParticipantId) &&
         auction &&
         auction.status === 'open' &&
         new Date(auction.deadline).getTime() > Date.now()
@@ -147,12 +166,11 @@ export default {
     },
     participant_added(participant) {
       const index = this.participants.findIndex(item => item.id === participant.id)
-      if (index === -1) this.participants.push(participant)
-      else this.$set(this.participants, index, participant)
+      if (index === -1) { this.participants.push(participant) } else { this.$set(this.participants, index, participant) }
       this.reset_participant_dialog()
-      if (this.positions[this.tab]) this.get_players_by_position_algorithm(this.positions[this.tab].id)
+      if (this.positions[this.tab]) { this.get_players_by_position_algorithm(this.positions[this.tab].id) }
       const teamIndex = this.teams.findIndex(team => team.name === participant.team_name)
-      if (teamIndex !== -1) this.$set(this.teams[teamIndex], 'participant_id', participant.id)
+      if (teamIndex !== -1) { this.$set(this.teams[teamIndex], 'participant_id', participant.id) }
     },
     get_participant_name(id) {
       const participant = this.participants.find(item => item.id === id)
@@ -178,7 +196,7 @@ export default {
       try {
         const response = await this.$axios.get('position/list')
         this.positions = response.data
-        if (this.positions.length) await this.get_players_by_position_algorithm(this.positions[0].id)
+        if (this.positions.length) { await this.get_players_by_position_algorithm(this.positions[0].id) }
       } finally {
         this.playersLoading = false
       }
@@ -220,7 +238,7 @@ export default {
       try {
         await this.$axios.delete(`championship/${this.championshipId}/participant/delete/${id}`)
         this.participants = this.participants.filter(participant => participant.id !== id)
-        if (this.positions[this.tab]) await this.get_players_by_position_algorithm(this.positions[this.tab].id)
+        if (this.positions[this.tab]) { await this.get_players_by_position_algorithm(this.positions[this.tab].id) }
       } catch (error) {
         const detail = error.response && error.response.data && error.response.data.detail
         this.$toast.error(detail || 'Participant could not be deleted.')
@@ -240,9 +258,9 @@ export default {
       }
     },
     update_player(player) {
-      if (!this.positions[this.tab] || this.positions[this.tab].id !== player.position_id) return
+      if (!this.positions[this.tab] || this.positions[this.tab].id !== player.position_id) { return }
       const index = this.selectedPosition.findIndex(item => item.id === player.id)
-      if (index !== -1) this.$set(this.selectedPosition, index, player)
+      if (index !== -1) { this.$set(this.selectedPosition, index, player) }
     },
     async player_updated(player) {
       this.update_player(player)
@@ -276,10 +294,12 @@ export default {
       this.currentAuction = auction
       this.placeBidDialog = true
     },
-    async bid_saved(result) {
+    bid_saved(result) {
       this.placeBidDialog = false
       this.$set(this.auctionsByPlayer, result.auction.player_id, result.auction)
-      const participantIndex = this.participants.findIndex(item => item.id === this.myParticipantId)
+      const participantIndex = this.participants.findIndex(
+        item => item.id === result.auction.leading_participant_id
+      )
       if (participantIndex !== -1) {
         this.$set(this.participants[participantIndex], 'budget', result.available_budget)
       }

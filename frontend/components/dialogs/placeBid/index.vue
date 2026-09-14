@@ -6,9 +6,19 @@
         <span>Current bid</span>
         <strong>${{ auction.leading_bid || auction.minimum_bid }}</strong>
       </div>
+      <v-select
+        v-if="isOwner"
+        v-model="selectedParticipantId"
+        :items="participants"
+        item-text="name"
+        item-value="id"
+        label="Bid for participant"
+        outlined
+        dark
+      />
       <div class="bid-summary">
         <span>Available budget</span>
-        <strong>${{ availableBudget }}</strong>
+        <strong>${{ displayedBudget }}</strong>
       </div>
       <v-text-field
         v-model.number="amount"
@@ -26,7 +36,14 @@
     <v-card-actions>
       <v-spacer />
       <v-btn text @click="$emit('close')">Cancel</v-btn>
-      <v-btn color="primary" :loading="saving" @click="submit">Place bid</v-btn>
+      <v-btn
+        color="primary"
+        :loading="saving"
+        :disabled="isOwner && !selectedParticipantId"
+        @click="submit"
+      >
+        Place bid
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -38,12 +55,25 @@ export default {
     championshipId: { type: [String, Number], required: true },
     auction: { type: Object, required: true },
     availableBudget: { type: Number, required: true },
+    participants: { type: Array, default: () => [] },
+    isOwner: { type: Boolean, default: false },
+    currentParticipantId: { type: [Number, String], default: null },
   },
   data() {
+    const linkedParticipant = this.participants.find(
+      participant => String(participant.id) === String(this.currentParticipantId)
+    )
+    let selectedParticipantId = null
+    if (linkedParticipant) {
+      selectedParticipantId = linkedParticipant.id
+    } else if (this.isOwner && this.participants.length) {
+      selectedParticipantId = this.participants[0].id
+    }
     return {
       amount: this.auction.leading_bid
         ? this.auction.leading_bid + 1
         : this.auction.minimum_bid,
+      selectedParticipantId,
       saving: false,
       error: null,
     }
@@ -52,15 +82,32 @@ export default {
     minimumAmount() {
       return this.auction.leading_bid ? this.auction.leading_bid + 1 : this.auction.minimum_bid
     },
+    selectedParticipant() {
+      return this.participants.find(participant => participant.id === this.selectedParticipantId) || null
+    },
+    displayedBudget() {
+      if (this.isOwner) {
+        return this.selectedParticipant ? this.selectedParticipant.budget : 0
+      }
+      return this.availableBudget
+    },
   },
   methods: {
     async submit() {
       this.error = null
+      if (this.isOwner && !this.selectedParticipantId) {
+        this.error = 'Select a participant to place the bid.'
+        return
+      }
       this.saving = true
+      const payload = { amount: Number(this.amount) }
+      if (this.isOwner) {
+        payload.participant_id = this.selectedParticipantId
+      }
       try {
         const response = await this.$axios.post(
           `championship/${this.championshipId}/auction/${this.auction.id}/bid`,
-          { amount: Number(this.amount) }
+          payload
         )
         this.$emit('saved', response.data)
       } catch (error) {

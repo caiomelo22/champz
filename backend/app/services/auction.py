@@ -3,7 +3,7 @@ from typing import Iterable, Optional
 import uuid
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import async_session_maker
@@ -105,16 +105,14 @@ async def update_auction(
     minimum_bid: int,
 ) -> PlayerAuction:
     auction = await _locked_auction(session, championship_id, auction_id)
-    if auction.status != "open":
-        raise HTTPException(status_code=409, detail="Only open auctions can be edited.")
-    if auction.deadline <= utc_now():
+    if auction.status not in {"open", "cancelled"}:
+        raise HTTPException(status_code=409, detail="Only open or cancelled auctions can be updated.")
+    restarting = auction.status == "cancelled"
+    if not restarting and auction.deadline <= utc_now():
         await _close_locked_auction(session, auction)
         await session.commit()
         raise HTTPException(status_code=409, detail="Auction deadline has passed.")
-    bid_count = (
-        await session.execute(select(func.count(Bid.id)).where(Bid.auction_id == auction.id))
-    ).scalar_one()
-    if bid_count:
+    if not restarting and auction.leading_participant_id is not None:
         raise HTTPException(status_code=409, detail="An auction with bids cannot be edited.")
 
     normalized_deadline = normalize_deadline(deadline)
@@ -125,6 +123,11 @@ async def update_auction(
 
     auction.deadline = normalized_deadline
     auction.minimum_bid = minimum_bid
+    if restarting:
+        auction.status = "open"
+        auction.leading_participant_id = None
+        auction.leading_participant = None
+        auction.leading_bid = None
     await session.commit()
     return auction
 
@@ -135,6 +138,7 @@ async def place_bid(
     auction_id: int,
     user_id: uuid.UUID,
     amount: int,
+    bidder_participant_id: Optional[int] = None,
 ) -> tuple[PlayerAuction, Participant]:
     auction = await _locked_auction(session, championship_id, auction_id)
     if auction.status != "open":
@@ -144,16 +148,16 @@ async def place_bid(
         await session.commit()
         raise HTTPException(status_code=409, detail="Auction deadline has passed.")
 
-    bidder_id = (
-        await session.execute(
-            select(Participant.id).where(
-                Participant.championship_id == championship_id,
-                Participant.user_id == user_id,
-            )
-        )
-    ).scalar_one_or_none()
+    bidder_query = select(Participant.id).where(
+        Participant.championship_id == championship_id,
+    )
+    if bidder_participant_id is not None:
+        bidder_query = bidder_query.where(Participant.id == bidder_participant_id)
+    else:
+        bidder_query = bidder_query.where(Participant.user_id == user_id)
+    bidder_id = (await session.execute(bidder_query)).scalar_one_or_none()
     if bidder_id is None:
-        raise HTTPException(status_code=403, detail="A linked participant is required to bid.")
+        raise HTTPException(status_code=403, detail="A valid participant is required to bid.")
 
     participant_ids = {bidder_id}
     if auction.leading_participant_id is not None:

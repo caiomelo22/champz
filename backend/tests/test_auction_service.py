@@ -1,4 +1,5 @@
 from datetime import timedelta, timezone
+import uuid
 
 import pytest
 from fastapi import HTTPException
@@ -6,9 +7,18 @@ from sqlalchemy import func, select
 
 from app.models_orm.bid import Bid
 from app.models_orm.draft_pick import DraftPick
+from app.models_orm.user import User
+from app.routers.v2.auction import PlaceBidModel, submit_bid
 from app.routers.v2.participant import ManageParticipantModel, update_participant
 from app.routers.v2.player import BuyPlayerModel, buy_player
-from app.services.auction import cancel_auction, close_auction, normalize_deadline, place_bid, utc_now
+from app.services.auction import (
+    cancel_auction,
+    close_auction,
+    normalize_deadline,
+    place_bid,
+    update_auction,
+    utc_now,
+)
 
 
 async def test_outbid_refunds_previous_leader_and_debits_new_leader(session, auction_setup):
@@ -106,6 +116,60 @@ async def test_bid_must_meet_minimum_and_available_budget(session, auction_setup
     assert data["first_participant"].budget == 100
 
 
+async def test_championship_owner_can_bid_as_linked_participant(session, auction_setup):
+    data = auction_setup
+
+    result = await submit_bid(
+        data["championship"].id,
+        data["auction"].id,
+        PlaceBidModel(amount=20),
+        data["first_user"],
+        session,
+    )
+
+    assert result.auction.leading_participant_id == data["first_participant"].id
+    assert result.available_budget == 80
+
+
+async def test_unlinked_championship_owner_can_bid_for_selected_participant(session, auction_setup):
+    data = auction_setup
+    owner = User(
+        id=uuid.uuid4(),
+        email="owner@example.com",
+        hashed_password="unused",
+        is_active=True,
+        is_superuser=False,
+        is_verified=True,
+    )
+    session.add(owner)
+    data["championship"].owner_id = owner.id
+    await session.commit()
+
+    result = await submit_bid(
+        data["championship"].id,
+        data["auction"].id,
+        PlaceBidModel(amount=20, participant_id=data["second_participant"].id),
+        owner,
+        session,
+    )
+
+    assert result.auction.leading_participant_id == data["second_participant"].id
+    assert result.available_budget == 80
+
+
+async def test_participant_cannot_bid_for_another_participant(session, auction_setup):
+    data = auction_setup
+
+    with pytest.raises(HTTPException, match="only bid for themselves"):
+        await submit_bid(
+            data["championship"].id,
+            data["auction"].id,
+            PlaceBidModel(amount=20, participant_id=data["first_participant"].id),
+            data["second_user"],
+            session,
+        )
+
+
 async def test_cancel_auction_refunds_current_leader(session, auction_setup):
     data = auction_setup
     auction, participant = await place_bid(
@@ -124,6 +188,48 @@ async def test_cancel_auction_refunds_current_leader(session, auction_setup):
     assert (
         await session.execute(select(func.count(DraftPick.id)))
     ).scalar_one() == 0
+
+
+async def test_cancelled_auction_can_be_restarted(session, auction_setup):
+    data = auction_setup
+    auction, participant = await place_bid(
+        session,
+        data["championship"].id,
+        data["auction"].id,
+        data["first_user"].id,
+        35,
+    )
+    await cancel_auction(session, data["championship"].id, auction.id)
+    new_deadline = utc_now() + timedelta(hours=2)
+
+    restarted = await update_auction(
+        session,
+        data["championship"].id,
+        auction.id,
+        new_deadline,
+        15,
+    )
+
+    assert restarted.status == "open"
+    assert restarted.deadline == normalize_deadline(new_deadline)
+    assert restarted.minimum_bid == 15
+    assert restarted.leading_participant_id is None
+    assert restarted.leading_participant is None
+    assert restarted.leading_bid is None
+    assert participant.budget == 100
+    assert (
+        await session.execute(select(func.count(Bid.id)).where(Bid.auction_id == auction.id))
+    ).scalar_one() == 1
+
+    restarted, new_leader = await place_bid(
+        session,
+        data["championship"].id,
+        auction.id,
+        data["second_user"].id,
+        20,
+    )
+    assert restarted.leading_participant_id == data["second_participant"].id
+    assert new_leader.budget == 80
 
 
 async def test_participant_budget_cannot_change_while_leading(session, auction_setup):

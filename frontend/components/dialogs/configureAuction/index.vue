@@ -1,6 +1,6 @@
 <template>
   <v-card class="auction-dialog">
-    <v-card-title>{{ auction ? 'Edit auction' : `Configure ${playerIds.length} auction(s)` }}</v-card-title>
+    <v-card-title>{{ dialogTitle }}</v-card-title>
     <v-card-text>
       <v-text-field
         v-model.number="minimumBid"
@@ -25,7 +25,7 @@
       <v-btn text class="cancel-button" @click="$emit('close')">Cancel</v-btn>
       <v-btn color="primary" class="save-button" :loading="saving" @click="save">
         <v-icon left small>mdi-gavel</v-icon>
-        {{ auction ? 'Update auction' : 'Create auction' }}
+        {{ submitLabel }}
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -53,6 +53,23 @@ export default {
       saving: false,
       error: null,
     }
+  },
+  computed: {
+    isRestart() {
+      return this.auction && this.auction.status === 'cancelled'
+    },
+    dialogTitle() {
+      if (this.isRestart) {
+        return 'Restart auction'
+      }
+      return this.auction ? 'Edit auction' : `Configure ${this.playerIds.length} auction(s)`
+    },
+    submitLabel() {
+      if (this.isRestart) {
+        return 'Restart auction'
+      }
+      return this.auction ? 'Update auction' : 'Create auction'
+    },
   },
   methods: {
     async save() {
