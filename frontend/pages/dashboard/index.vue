@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h1 class="dashboard-title">My Championships</h1>
+      <h1 class="dashboard-title">Championships</h1>
       <v-btn class="create-btn" @click="createDialog = true">
         <v-icon left>mdi-plus</v-icon>
         New Champz
@@ -37,6 +37,9 @@
           >
             {{ statusLabel(champ.status) }}
           </v-chip>
+          <v-chip small outlined class="role-chip">
+            {{ champ.access_role === 'owner' ? 'Manager' : 'Participant' }}
+          </v-chip>
         </div>
 
         <div class="card-stats">
@@ -55,7 +58,7 @@
         </div>
 
         <div class="card-actions" @click.stop>
-          <v-btn icon small @click="confirmDelete(champ)">
+          <v-btn v-if="champ.access_role === 'owner'" icon small @click="confirmDelete(champ)">
             <v-icon small color="rgba(239,68,68,0.8)">mdi-delete-outline</v-icon>
           </v-btn>
         </div>
@@ -273,6 +276,12 @@ export default {
 .status-chip {
   font-size: 11px !important;
   font-weight: 600;
+}
+
+.role-chip {
+  color: rgba(226, 232, 240, 0.85) !important;
+  border-color: rgba(148, 163, 184, 0.45) !important;
+  font-size: 11px !important;
 }
 
 .card-stats {

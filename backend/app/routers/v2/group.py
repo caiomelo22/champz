@@ -174,7 +174,7 @@ async def create_group(
     session: AsyncSession = Depends(get_async_session),
 ):
     champ_stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
+        Championship.id == championship_id, Championship.owner_id == user.id
     )
     champ = (await session.execute(champ_stmt)).scalar_one_or_none()
     if not champ:
@@ -226,7 +226,7 @@ async def generate_knockout(
     session: AsyncSession = Depends(get_async_session),
 ):
     champ_stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
+        Championship.id == championship_id, Championship.owner_id == user.id
     )
     champ = (await session.execute(champ_stmt)).scalar_one_or_none()
     if not champ:

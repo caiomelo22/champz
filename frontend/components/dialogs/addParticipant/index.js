@@ -4,6 +4,7 @@ export default {
     updatingParticipant: false,
     selectedTeam: null,
     participant: null,
+    error: null,
   }),
   props: {
     participantProp: Object,
@@ -23,25 +24,21 @@ export default {
   methods: {
     async add_participant () {
       this.updatingParticipant = true;
+      this.error = null;
       this.participant.team = this.selectedTeam.name;
       const prefix = this.championshipId ? `championship/${this.championshipId}/` : '';
-      if (!this.participant.id) {
-        await this.$axios
-          .post(`${prefix}participant/create`, this.participant)
-          .then((response) => {
-            this.$emit('update', response.data)
-          })
-          .catch((err) => { });
-      } else {
-        await this.$axios
-          .patch(
+      try {
+        const response = !this.participant.id
+          ? await this.$axios.post(`${prefix}participant/create`, this.participant)
+          : await this.$axios.patch(
             `${prefix}participant/update/${this.participant.id}`,
             this.participant
-          )
-          .then((response) => {
-            this.$emit('update', response.data)
-          })
-          .catch((err) => { });
+          );
+        this.$emit('update', response.data)
+      } catch (error) {
+        this.error = error.response && error.response.data && error.response.data.detail
+          ? error.response.data.detail
+          : 'Participant could not be saved.';
       }
       this.updatingParticipant = false;
     },

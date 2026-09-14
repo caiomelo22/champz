@@ -7,6 +7,9 @@
         <span class="breadcrumb-current">{{ championshipName }}</span>
       </div>
       <h1 class="page-title">{{ championshipName }}</h1>
+      <v-chip small outlined class="access-chip">
+        {{ isOwner ? 'Manager' : 'Participant' }}
+      </v-chip>
     </div>
     
     <v-row>
@@ -18,13 +21,14 @@
               <div class="icon-wrapper">
                 <v-icon color="white" size="20">mdi-wallet</v-icon>
               </div>
-              <h3 class="card-title">Set Budget</h3>
+              <h3 class="card-title">{{ isOwner ? 'Default Budget' : 'Available Budget' }}</h3>
             </div>
             <v-text-field 
-              v-model="genericBudget" 
+              :value="isOwner ? genericBudget : availableBudget"
               type="number"
               prefix="$"
               placeholder="Enter budget amount"
+              :readonly="!isOwner"
               solo
               flat
               hide-details
@@ -45,6 +49,7 @@
                   <h3 class="card-title">Participants</h3>
                 </div>
                 <v-btn
+                  v-if="isOwner"
                   fab
                   small
                   color="#3b82f6"
@@ -79,16 +84,19 @@
                   <div class="participant-details">
                     <h4 class="participant-name">{{ participant.name }}</h4>
                     <p class="participant-team">{{ participant.team_name }}</p>
+                    <p v-if="isOwner && participant.link_status !== 'unlinked'" class="participant-link">
+                      {{ participant.link_status === 'linked' ? 'Account linked' : 'Verification pending' }}
+                    </p>
                   </div>
                 </div>
-                <div class="participant-budget">
+                <div v-if="participant.budget != null" class="participant-budget">
                   <span class="budget-amount">${{ participant.budget }}</span>
                 </div>
                 <div class="participant-actions">
-                  <v-btn icon small @click="open_participant_dialog(participant)" class="action-btn">
+                  <v-btn v-if="isOwner" icon small @click="open_participant_dialog(participant)" class="action-btn">
                     <v-icon size="18" color="#3b82f6">mdi-pencil</v-icon>
                   </v-btn>
-                  <v-btn icon small @click="delete_participant(participant.id)" class="action-btn">
+                  <v-btn v-if="isOwner" icon small @click="delete_participant(participant.id)" class="action-btn">
                     <v-icon size="18" color="#ef4444">mdi-trash-can</v-icon>
                   </v-btn>
                   <v-btn 
@@ -116,6 +124,16 @@
                 <v-icon color="white" size="20">mdi-soccer</v-icon>
               </div>
               <h3 class="card-title">Players</h3>
+              <v-spacer />
+              <v-btn
+                v-if="isOwner && selectedAuctionPlayerIds.length"
+                small
+                color="primary"
+                @click="open_batch_auction"
+              >
+                <v-icon left small>mdi-gavel</v-icon>
+                Configure {{ selectedAuctionPlayerIds.length }}
+              </v-btn>
             </div>
 
             <v-tabs 
@@ -147,9 +165,17 @@
             <div v-else-if="tab != -1" class="players-grid">
               <div 
                 v-for="player in selectedPosition" 
-                :key="`${player.id}-${player.team_participant}-${player.value}`"
+                :key="`${player.id}-${player.team_participant}-${player.value}-${auction_for(player.id) && auction_for(player.id).leading_bid}`"
                 class="player-card"
               >
+                <v-checkbox
+                  v-if="isOwner && !player.participant_id && !auction_for(player.id)"
+                  v-model="selectedAuctionPlayerIds"
+                  :value="player.id"
+                  class="auction-selector"
+                  hide-details
+                  aria-label="Select player for auction"
+                />
                 <div class="player-image-section">
                   <img 
                     :src="gs.get_image_path(player.image_path)" 
@@ -185,13 +211,28 @@
                       </span>
                     </div>
                   </div>
+
+                  <div v-if="auction_for(player.id)" class="auction-state">
+                    <div class="auction-state-row">
+                      <span class="auction-status">{{ auction_for(player.id).status }}</span>
+                      <AuctionCountdown
+                        v-if="auction_for(player.id).status === 'open'"
+                        :deadline="auction_for(player.id).deadline"
+                      />
+                    </div>
+                    <div class="auction-state-row">
+                      <span>{{ auction_for(player.id).leading_participant_name || 'No bids yet' }}</span>
+                      <strong>${{ auction_for(player.id).leading_bid || auction_for(player.id).minimum_bid }}</strong>
+                    </div>
+                  </div>
                   
                   <div class="player-footer">
                     <div class="price-section">
-                      <span class="price">${{ player.value }}</span>
+                      <span v-if="player.value != null" class="price">${{ player.value }}</span>
                     </div>
                     <div class="action-buttons">
                       <v-btn 
+                        v-if="isOwner && !auction_for(player.id)"
                         icon 
                         small 
                         color="#10b981" 
@@ -201,6 +242,7 @@
                         <v-icon size="18">mdi-cash-plus</v-icon>
                       </v-btn>
                       <v-btn 
+                        v-if="isOwner && player.participant_id && !auction_for(player.id)"
                         icon 
                         small 
                         color="#ef4444" 
@@ -208,6 +250,46 @@
                         class="action-btn"
                       >
                         <v-icon size="18">mdi-cash-minus</v-icon>
+                      </v-btn>
+                      <v-btn
+                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'open'"
+                        icon
+                        small
+                        class="action-btn"
+                        title="Edit auction"
+                        @click="edit_auction(auction_for(player.id))"
+                      >
+                        <v-icon size="18" color="#3b82f6">mdi-pencil</v-icon>
+                      </v-btn>
+                      <v-btn
+                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'open'"
+                        icon
+                        small
+                        class="action-btn"
+                        title="Cancel auction"
+                        @click="cancel_auction(auction_for(player.id))"
+                      >
+                        <v-icon size="18" color="#ef4444">mdi-close</v-icon>
+                      </v-btn>
+                      <v-btn
+                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'cancelled'"
+                        icon
+                        small
+                        class="action-btn"
+                        title="Restart auction"
+                        @click="edit_auction(auction_for(player.id))"
+                      >
+                        <v-icon size="18" color="#3b82f6">mdi-restart</v-icon>
+                      </v-btn>
+                      <v-btn
+                        v-if="can_bid(auction_for(player.id))"
+                        small
+                        color="primary"
+                        class="bid-btn"
+                        @click="open_bid(auction_for(player.id))"
+                      >
+                        <v-icon left small>mdi-gavel</v-icon>
+                        Bid
                       </v-btn>
                     </div>
                   </div>
@@ -247,9 +329,33 @@
         @remove="remove_buy" 
       />
     </v-dialog>
+
+    <v-dialog v-if="configureAuctionDialog" v-model="configureAuctionDialog" width="500px" max-width="90%">
+      <ConfigureAuction
+        :championship-id="championshipId"
+        :player-ids="selectedAuctionPlayerIds"
+        :auction="currentAuction"
+        @close="configureAuctionDialog = false"
+        @saved="auction_saved"
+      />
+    </v-dialog>
+
+    <v-dialog v-if="placeBidDialog && currentAuction" v-model="placeBidDialog" width="500px" max-width="90%">
+      <PlaceBid
+        :championship-id="championshipId"
+        :auction="currentAuction"
+        :available-budget="availableBudget"
+        :participants="participants"
+        :is-owner="isOwner"
+        :current-participant-id="linkedManagerParticipantId"
+        @close="placeBidDialog = false"
+        @saved="bid_saved"
+      />
+    </v-dialog>
   </div>
 </template>
 
+<script src="./index"></script>
 <style lang="scss" scoped>
 .draft-container {
   padding: 0 24px;
@@ -296,6 +402,11 @@
 
 .breadcrumb-current {
   color: rgba(203, 213, 225, 0.8);
+}
+
+.access-chip {
+  color: rgba(226, 232, 240, 0.85) !important;
+  border-color: rgba(148, 163, 184, 0.45) !important;
 }
 
 .page-subtitle {
@@ -480,6 +591,12 @@
   font-family: 'DM Sans', sans-serif;
 }
 
+.participant-link {
+  margin: 0;
+  color: #fbbf24;
+  font-size: 0.75rem;
+}
+
 .participant-budget {
   margin: 0 20px;
 }
@@ -548,6 +665,43 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+}
+
+.auction-selector {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  z-index: 2;
+  margin: 0;
+}
+
+.auction-state {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.85rem;
+}
+
+.auction-state-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auction-status {
+  text-transform: capitalize;
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.bid-btn {
+  text-transform: none;
 }
 
 .player-card::before {
@@ -748,4 +902,3 @@
   }
 }
 </style>
-<script src="./index"></script>

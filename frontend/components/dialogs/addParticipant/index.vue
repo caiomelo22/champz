@@ -22,6 +22,27 @@
             placeholder="Enter participant name"
           ></v-text-field>
         </div>
+
+        <div class="input-group">
+          <label class="input-label">Account email (optional)</label>
+          <v-text-field
+            v-model.trim="participant.user_email"
+            type="email"
+            solo
+            flat
+            hide-details
+            class="professional-input"
+            placeholder="user@example.com"
+          />
+          <span v-if="participant.link_status === 'pending'" class="link-state pending">
+            Waiting for email verification
+          </span>
+          <span v-else-if="participant.link_status === 'linked'" class="link-state linked">
+            Account linked
+          </span>
+        </div>
+
+        <v-alert v-if="error" type="error" dense>{{ error }}</v-alert>
         
         <div class="input-group">
           <label class="input-label">Team</label>
@@ -118,6 +139,18 @@
   font-size: 0.9rem;
   font-family: 'DM Sans', sans-serif;
   margin-bottom: 4px;
+}
+
+.link-state {
+  font-size: 12px;
+}
+
+.link-state.pending {
+  color: #f59e0b;
+}
+
+.link-state.linked {
+  color: #10b981;
 }
 
 .professional-input ::v-deep .v-input__control {

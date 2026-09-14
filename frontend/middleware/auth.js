@@ -1,5 +1,5 @@
 export default function ({ store, redirect, route }) {
-  const publicPaths = ['/login']
+  const publicPaths = ['/login', '/verify-email']
   if (publicPaths.includes(route.path)) {
     return
   }
