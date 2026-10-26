@@ -60,7 +60,7 @@ export default {
     theme: {
       themes: {
         light: {
-          primary: 'rgba(203, 213, 225, 0.95)',
+          primary: '#2563eb',
         }
       }
     }

@@ -3,17 +3,19 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
+from app.dependencies.championship import get_championship_access, require_owner
 from app.models_orm.championship import Championship
 from app.models_orm.group import Group
 from app.models_orm.match import Match
 from app.models_orm.participant import Participant
 from app.models_orm.user import User
+from app.models_orm.player_auction import PlayerAuction
 
 router = APIRouter()
 
@@ -36,6 +38,8 @@ class ChampionshipResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     num_participants: int = 0
+    access_role: str = "owner"
+    participant_id: t.Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -49,7 +53,7 @@ async def create_championship(
 ):
     championship = Championship(
         name=data.name,
-        owner_id=str(user.id),
+        owner_id=user.id,
         budget_default=data.budget_default,
     )
     session.add(championship)
@@ -72,17 +76,31 @@ async def list_championships(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    stmt = (
+    membership_stmt = select(Participant.championship_id, Participant.id).where(
+        Participant.user_id == user.id
+    )
+    membership_rows = (await session.execute(membership_stmt)).all() if user.is_verified else []
+    membership_by_championship = {championship_id: participant_id for championship_id, participant_id in membership_rows}
+    participant_count = (
+        select(func.count(Participant.id))
+        .where(Participant.championship_id == Championship.id)
+        .correlate(Championship)
+        .scalar_subquery()
+    )
+    accessible_championships_stmt = (
         select(
             Championship,
-            func.count(Participant.id).label("num_participants"),
+            participant_count.label("num_participants"),
         )
-        .outerjoin(Participant, Participant.championship_id == Championship.id)
-        .where(Championship.owner_id == str(user.id))
-        .group_by(Championship.id)
+        .where(
+            or_(
+                Championship.owner_id == user.id,
+                Championship.id.in_(membership_by_championship.keys()),
+            )
+        )
         .order_by(Championship.updated_at.desc())
     )
-    result = await session.execute(stmt)
+    result = await session.execute(accessible_championships_stmt)
     rows = result.all()
 
     return [
@@ -94,6 +112,8 @@ async def list_championships(
             created_at=champ.created_at,
             updated_at=champ.updated_at,
             num_participants=num_p,
+            access_role="owner" if champ.owner_id == user.id else "participant",
+            participant_id=membership_by_championship.get(champ.id),
         )
         for champ, num_p in rows
     ]
@@ -105,22 +125,13 @@ async def get_championship(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    stmt = (
-        select(
-            Championship,
-            func.count(Participant.id).label("num_participants"),
+    access = await get_championship_access(session, championship_id, user)
+    num_p = (
+        await session.execute(
+            select(func.count(Participant.id)).where(Participant.championship_id == championship_id)
         )
-        .outerjoin(Participant, Participant.championship_id == Championship.id)
-        .where(Championship.id == championship_id, Championship.owner_id == str(user.id))
-        .group_by(Championship.id)
-    )
-    result = await session.execute(stmt)
-    row = result.first()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="Championship not found.")
-
-    champ, num_p = row
+    ).scalar_one()
+    champ = access.championship
     return ChampionshipResponse(
         id=champ.id,
         name=champ.name,
@@ -129,6 +140,8 @@ async def get_championship(
         created_at=champ.created_at,
         updated_at=champ.updated_at,
         num_participants=num_p,
+        access_role=access.role,
+        participant_id=access.participant.id if access.participant else None,
     )
 
 
@@ -139,20 +152,29 @@ async def update_championship(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
-    )
-    result = await session.execute(stmt)
-    championship = result.scalar_one_or_none()
-
-    if not championship:
-        raise HTTPException(status_code=404, detail="Championship not found.")
+    access = await get_championship_access(session, championship_id, user)
+    require_owner(access)
+    championship = access.championship
 
     if data.name is not None:
         championship.name = data.name
     if data.status is not None:
         if data.status not in ("draft", "games", "complete"):
             raise HTTPException(status_code=400, detail="Invalid status.")
+        if data.status != "draft":
+            open_auction = (
+                await session.execute(
+                    select(PlayerAuction.id).where(
+                        PlayerAuction.championship_id == championship_id,
+                        PlayerAuction.status == "open",
+                    ).limit(1)
+                )
+            ).scalar_one_or_none()
+            if open_auction:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Open auctions must be closed or cancelled first.",
+                )
         championship.status = data.status
 
     await session.commit()
@@ -167,6 +189,8 @@ async def update_championship(
         created_at=championship.created_at,
         updated_at=championship.updated_at,
         num_participants=num_p,
+        access_role="owner",
+        participant_id=access.participant.id if access.participant else None,
     )
 
 
@@ -176,14 +200,9 @@ async def delete_championship(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
-    )
-    result = await session.execute(stmt)
-    championship = result.scalar_one_or_none()
-
-    if not championship:
-        raise HTTPException(status_code=404, detail="Championship not found.")
+    access = await get_championship_access(session, championship_id, user)
+    require_owner(access)
+    championship = access.championship
 
     await session.delete(championship)
     await session.commit()

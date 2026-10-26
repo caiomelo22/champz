@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
+from app.dependencies.championship import get_championship_access, require_owner
 from app.models_orm.championship import Championship
 from app.models_orm.draft_pick import DraftPick
 from app.models_orm.participant import Participant
@@ -20,6 +21,7 @@ from app.models_orm.position import Position
 from app.models_orm.team import Team
 from app.models_orm.nation import Nation
 from app.models_orm.user import User
+from app.models_orm.player_auction import PlayerAuction
 from app.utils.export import write_players_sheet, write_transfers_sheet
 
 _limit_by_position = {
@@ -169,13 +171,7 @@ async def list_players(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    # Verify championship ownership
-    champ_stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
-    )
-    champ = (await session.execute(champ_stmt)).scalar_one_or_none()
-    if not champ:
-        raise HTTPException(status_code=404, detail="Championship not found.")
+    await get_championship_access(session, championship_id, user)
 
     # Count participants for limit calculation
     p_count_stmt = select(func.count(Participant.id)).where(Participant.championship_id == championship_id)
@@ -253,13 +249,28 @@ async def buy_player(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    # Verify championship ownership
-    champ_stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
+    access = await get_championship_access(session, championship_id, user)
+    require_owner(access)
+
+    await session.execute(
+        select(Championship.id)
+        .where(Championship.id == championship_id)
+        .with_for_update()
     )
-    champ = (await session.execute(champ_stmt)).scalar_one_or_none()
-    if not champ:
-        raise HTTPException(status_code=404, detail="Championship not found.")
+
+    auction = (
+        await session.execute(
+            select(PlayerAuction).where(
+                PlayerAuction.championship_id == championship_id,
+                PlayerAuction.player_id == player_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if auction and auction.status != "cancelled":
+        raise HTTPException(
+            status_code=409,
+            detail="Players with an active or completed auction cannot be assigned manually.",
+        )
 
     # Get the player
     player_stmt = select(Player).options(
@@ -280,12 +291,35 @@ async def buy_player(
             DraftPick.player_id == player_id,
         )
         .options(selectinload(DraftPick.participant).selectinload(Participant.team))
+        .with_for_update()
     )
     existing_dp = (await session.execute(existing_dp_stmt)).scalar_one_or_none()
 
+    participant_ids = {
+        participant_id
+        for participant_id in (
+            existing_dp.participant_id if existing_dp else None,
+            data.participant_id,
+        )
+        if participant_id is not None
+    }
+    participants = (
+        await session.execute(
+            select(Participant)
+            .options(selectinload(Participant.team))
+            .where(
+                Participant.championship_id == championship_id,
+                Participant.id.in_(sorted(participant_ids)),
+            )
+            .order_by(Participant.id)
+            .with_for_update()
+        )
+    ).scalars().all()
+    participant_by_id = {participant.id: participant for participant in participants}
+
     # If player already drafted, refund and remove
     if existing_dp:
-        old_participant = existing_dp.participant
+        old_participant = participant_by_id[existing_dp.participant_id]
         old_participant.budget += existing_dp.value
         await session.delete(existing_dp)
         await session.flush()
@@ -298,12 +332,7 @@ async def buy_player(
     if not data.value:
         raise HTTPException(status_code=400, detail="Player value not valid.")
 
-    # Get new participant
-    part_stmt = select(Participant).options(selectinload(Participant.team)).where(
-        Participant.id == data.participant_id,
-        Participant.championship_id == championship_id,
-    )
-    new_participant = (await session.execute(part_stmt)).scalar_one_or_none()
+    new_participant = participant_by_id.get(data.participant_id)
     if not new_participant:
         raise HTTPException(status_code=404, detail="Participant not found.")
 
@@ -313,6 +342,7 @@ async def buy_player(
     # Create draft pick and deduct budget
     new_participant.budget -= data.value
     new_dp = DraftPick(
+        championship_id=championship_id,
         participant_id=new_participant.id,
         player_id=player_id,
         value=data.value,
@@ -330,12 +360,8 @@ async def get_sheet(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    champ_stmt = select(Championship).where(
-        Championship.id == championship_id, Championship.owner_id == str(user.id)
-    )
-    champ = (await session.execute(champ_stmt)).scalar_one_or_none()
-    if not champ:
-        raise HTTPException(status_code=404, detail="Championship not found.")
+    access = await get_championship_access(session, championship_id, user)
+    require_owner(access)
 
     positions_result = await session.execute(select(Position))
     positions = positions_result.scalars().all()

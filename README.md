@@ -2,6 +2,8 @@
 ## Overview
 This project is a FIFA tournament organizer. Users can create a tournament with any number of participants (minimum of 4), and each participant builds their own team through an auction-style process. Each participant is given a budget (default: 250), and the auction proceeds by iterating through FIFA player positions. Participants can bid on and purchase the best players in the game to assemble their teams.
 
+During the draft, the championship owner can open one or more player auctions with a minimum bid and a minute-precision deadline. Verified accounts linked to participants can bid from their own budget. The current winning amount is reserved immediately, refunded when outbid, and converted into a player assignment when the deadline passes.
+
 <img width="1641" height="908" alt="image" src="https://github.com/user-attachments/assets/7b561ae1-b09c-4e46-af89-af1567444069" />
 
 After the teams are built, the project generates a group stage where every participant plays against each other. Once all matches are completed, the top four players advance to the semifinals: first place faces fourth, and second faces third. The winners of the semifinals then compete in the final to determine the tournament champion.
@@ -16,8 +18,10 @@ IMAGE_DIR_PATH=C:\default_path
 You'll also need to define two more .env files for the backend and frontend, but those are explained in detail inside their respective folders.
 Once everything is set up, just run the following command from the root directory and enjoy:
 ```
->> docker-compose up
+docker-compose up
 ```
+
+The backend container applies Alembic migrations before starting. See the backend and frontend READMEs for local development, account verification, SMTP, and test commands.
 
 ## Final Considerations
 This project started as a simple console application I built back in early 2019 for a CS class at university. After the semester ended, I kept improving it and using it to run FIFA tournaments with my friends.

@@ -6,6 +6,8 @@ from app.models_orm.team import Team
 from app.models_orm.position import Position
 from app.models_orm.nation import Nation
 from app.models_orm.draft_pick import DraftPick
+from app.models_orm.player_auction import PlayerAuction
+from app.models_orm.bid import Bid
 from app.models_orm.group import Group, GroupParticipant
 from app.models_orm.match import Match
 
@@ -19,6 +21,8 @@ __all__ = [
     "Position",
     "Nation",
     "DraftPick",
+    "PlayerAuction",
+    "Bid",
     "Group",
     "GroupParticipant",
     "Match",

@@ -264,13 +264,20 @@
 }
 
 .breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 12px;
   margin-bottom: 8px;
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
 }
 
 .breadcrumb-link {
-  color: #3b82f6;
+  color: #93c5fd;
   text-decoration: none;
 }
 
@@ -279,12 +286,13 @@
 }
 
 .breadcrumb-sep {
-  color: rgba(148, 163, 184, 0.6);
+  color: #94a3b8;
   margin: 0 8px;
 }
 
 .breadcrumb-current {
-  color: rgba(203, 213, 225, 0.8);
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
 }
 
 .page-subtitle {

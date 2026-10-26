@@ -96,6 +96,7 @@
   </v-card>
 </template>
 
+<script src="./index"></script>
 <style lang="scss" scoped>
 .register-score-dialog {
   background: rgba(30, 41, 59, 0.95) !important;
@@ -201,7 +202,7 @@
 
 .score-inputs {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   gap: 24px;
 }
 
@@ -325,4 +326,3 @@
   }
 }
 </style>
-<script src="./index"></script>
