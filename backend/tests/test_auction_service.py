@@ -7,13 +7,16 @@ from sqlalchemy import func, select
 
 from app.models_orm.bid import Bid
 from app.models_orm.draft_pick import DraftPick
+from app.models_orm.player import Player
+from app.models_orm.player_auction import PlayerAuction
 from app.models_orm.user import User
-from app.routers.v2.auction import PlaceBidModel, submit_bid
+from app.routers.v2.auction import ConfigureAuctionsModel, PlaceBidModel, configure_auction_batch, submit_bid
 from app.routers.v2.participant import ManageParticipantModel, update_participant
 from app.routers.v2.player import BuyPlayerModel, buy_player
 from app.services.auction import (
     cancel_auction,
     close_auction,
+    configure_auctions,
     normalize_deadline,
     place_bid,
     update_auction,
@@ -254,8 +257,11 @@ async def test_participant_budget_cannot_change_while_leading(session, auction_s
     assert data["first_participant"].budget == 65
 
 
-async def test_player_with_open_auction_cannot_be_assigned_manually(session, auction_setup):
+@pytest.mark.parametrize('status', ['open', 'closed'])
+async def test_player_with_active_or_completed_auction_cannot_be_assigned_manually(session, auction_setup, status):
     data = auction_setup
+    data['auction'].status = status
+    await session.commit()
 
     with pytest.raises(HTTPException, match="cannot be assigned manually"):
         await buy_player(
@@ -265,3 +271,128 @@ async def test_player_with_open_auction_cannot_be_assigned_manually(session, auc
             data["first_user"],
             session,
         )
+
+
+async def test_batch_creates_and_restarts_cancelled_auctions(session, auction_setup):
+    data = auction_setup
+    auction, participant = await place_bid(
+        session, data['championship'].id, data['auction'].id, data['first_user'].id, 35
+    )
+    await cancel_auction(session, data['championship'].id, auction.id)
+    source = await session.get(Player, auction.player_id)
+    new_player = Player(**{
+        column.name: getattr(source, column.name)
+        for column in Player.__table__.columns
+        if column.name != 'id'
+    }, id='new-player')
+    session.add(new_player)
+    await session.commit()
+    deadline = utc_now() + timedelta(hours=2)
+
+    auctions = await configure_auctions(
+        session, data['championship'].id,
+        [auction.player_id, new_player.id, auction.player_id], deadline, 15,
+    )
+
+    assert len(auctions) == 2
+    assert auctions[0].id == auction.id
+    for configured in auctions:
+        assert configured.status == 'open'
+        assert configured.minimum_bid == 15
+        assert configured.deadline == normalize_deadline(deadline)
+        assert configured.leading_bid is None
+        assert configured.leading_participant_id is None
+        assert configured.leading_participant is None
+    assert participant.budget == 100
+    assert (await session.execute(select(func.count(PlayerAuction.id)))).scalar_one() == 2
+    assert (await session.execute(select(func.count(Bid.id)))).scalar_one() == 1
+
+
+async def test_batch_endpoint_returns_restarted_auction_without_previous_leader(session, auction_setup):
+    data = auction_setup
+    await place_bid(session, data['championship'].id, data['auction'].id, data['first_user'].id, 35)
+    await cancel_auction(session, data['championship'].id, data['auction'].id)
+
+    response = await configure_auction_batch(
+        data['championship'].id,
+        ConfigureAuctionsModel(
+            player_ids=[data['auction'].player_id],
+            deadline=utc_now() + timedelta(hours=2), minimum_bid=15,
+        ),
+        data['first_user'], session,
+    )
+
+    assert len(response) == 1
+    assert response[0].id == data['auction'].id
+    assert response[0].status == 'open'
+    assert response[0].minimum_bid == 15
+    assert response[0].leading_participant_id is None
+    assert response[0].leading_participant_name is None
+    assert response[0].leading_bid is None
+    assert response[0].bid_count == 1
+
+
+@pytest.mark.parametrize('blocked_status', ['open', 'closed'])
+async def test_batch_rejects_non_cancelled_auction_atomically(session, auction_setup, blocked_status):
+    data = auction_setup
+    auction = data['auction']
+    await cancel_auction(session, data['championship'].id, auction.id)
+    source = await session.get(Player, auction.player_id)
+    new_player = Player(**{
+        column.name: getattr(source, column.name)
+        for column in Player.__table__.columns
+        if column.name != 'id'
+    }, id='blocked-player')
+    session.add(new_player)
+    blocked = PlayerAuction(
+        championship_id=data['championship'].id, player_id=new_player.id,
+        status=blocked_status, minimum_bid=10, deadline=utc_now() + timedelta(hours=1),
+    )
+    session.add(blocked)
+    await session.commit()
+
+    with pytest.raises(HTTPException, match='already has an auction'):
+        await configure_auctions(
+            session, data['championship'].id, [auction.player_id, new_player.id],
+            utc_now() + timedelta(hours=2), 15,
+        )
+    await session.refresh(auction)
+    assert auction.status == 'cancelled'
+
+
+async def test_cancelled_player_can_be_assigned_and_unassigned_manually(session, auction_setup):
+    data = auction_setup
+    await place_bid(session, data['championship'].id, data['auction'].id, data['first_user'].id, 35)
+    await cancel_auction(session, data['championship'].id, data['auction'].id)
+    await buy_player(
+        data['championship'].id, data['auction'].player_id,
+        BuyPlayerModel(participant_id=data['second_participant'].id, value=20),
+        data['first_user'], session,
+    )
+    pick = (await session.execute(select(DraftPick))).scalar_one()
+    assert pick.participant_id == data['second_participant'].id
+    assert data['first_participant'].budget == 100
+    assert data['second_participant'].budget == 80
+
+    with pytest.raises(HTTPException, match='already been drafted'):
+        await configure_auctions(
+            session, data['championship'].id, [data['auction'].player_id],
+            utc_now() + timedelta(hours=2), 15,
+        )
+    with pytest.raises(HTTPException, match='already been drafted'):
+        await update_auction(
+            session, data['championship'].id, data['auction'].id,
+            utc_now() + timedelta(hours=2), 15,
+        )
+
+    await buy_player(
+        data['championship'].id, data['auction'].player_id,
+        BuyPlayerModel(participant_id=None), data['first_user'], session,
+    )
+    assert data['second_participant'].budget == 100
+    assert (await session.execute(select(func.count(DraftPick.id)))).scalar_one() == 0
+    restarted = await configure_auctions(
+        session, data['championship'].id, [data['auction'].player_id],
+        utc_now() + timedelta(hours=2), 15,
+    )
+    assert restarted[0].status == 'open'

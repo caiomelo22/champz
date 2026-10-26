@@ -72,26 +72,30 @@ async def configure_auctions(
     if existing_pick:
         raise HTTPException(status_code=409, detail="A selected player has already been drafted.")
 
-    existing_auction = (
+    existing_auctions = (
         await session.execute(
-            select(PlayerAuction.id).where(
+            select(PlayerAuction).where(
                 PlayerAuction.championship_id == championship_id,
                 PlayerAuction.player_id.in_(normalized_player_ids),
-            ).limit(1)
+            ).order_by(PlayerAuction.id).with_for_update()
         )
-    ).scalar_one_or_none()
-    if existing_auction:
+    ).scalars().all()
+    if any(auction.status != "cancelled" for auction in existing_auctions):
         raise HTTPException(status_code=409, detail="A selected player already has an auction.")
 
-    auctions = [
-        PlayerAuction(
-            championship_id=championship_id,
-            player_id=player_id,
-            deadline=normalized_deadline,
-            minimum_bid=minimum_bid,
-        )
-        for player_id in normalized_player_ids
-    ]
+    auctions_by_player = {auction.player_id: auction for auction in existing_auctions}
+    auctions = []
+    for player_id in normalized_player_ids:
+        auction = auctions_by_player.get(player_id)
+        if auction is None:
+            auction = PlayerAuction(championship_id=championship_id, player_id=player_id)
+        auction.deadline = normalized_deadline
+        auction.minimum_bid = minimum_bid
+        auction.status = "open"
+        auction.leading_participant_id = None
+        auction.leading_participant = None
+        auction.leading_bid = None
+        auctions.append(auction)
     session.add_all(auctions)
     await session.commit()
     return auctions
@@ -104,10 +108,31 @@ async def update_auction(
     deadline: datetime,
     minimum_bid: int,
 ) -> PlayerAuction:
+    # Use the same lock order as batch configuration and manual assignment.
+    championship = (
+        await session.execute(
+            select(Championship)
+            .where(Championship.id == championship_id)
+            .with_for_update()
+        )
+    ).scalar_one()
     auction = await _locked_auction(session, championship_id, auction_id)
     if auction.status not in {"open", "cancelled"}:
         raise HTTPException(status_code=409, detail="Only open or cancelled auctions can be updated.")
     restarting = auction.status == "cancelled"
+    if restarting:
+        if championship.status != "draft":
+            raise HTTPException(status_code=409, detail="Auctions are only available during the draft.")
+        existing_pick = (
+            await session.execute(
+                select(DraftPick.id).where(
+                    DraftPick.championship_id == championship_id,
+                    DraftPick.player_id == auction.player_id,
+                ).limit(1)
+            )
+        ).scalar_one_or_none()
+        if existing_pick is not None:
+            raise HTTPException(status_code=409, detail="This player has already been drafted.")
     if not restarting and auction.deadline <= utc_now():
         await _close_locked_auction(session, auction)
         await session.commit()

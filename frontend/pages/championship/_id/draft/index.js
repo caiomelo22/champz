@@ -30,9 +30,10 @@ export default {
     selectedPosition: [],
     teams: [],
     auctionsByPlayer: {},
-    selectedAuctionPlayerIds: [],
+    auctionPlayer: null,
     playersLoading: false,
     participantsLoading: false,
+    participantBudgetsDirty: false,
     auctionPolling: false,
     pollingTimer: null,
     currentPlayer: null,
@@ -83,7 +84,6 @@ export default {
     },
     tab() {
       if (this.positions[this.tab]) {
-        this.selectedAuctionPlayerIds = []
         this.get_players_by_position_algorithm(this.positions[this.tab].id)
       }
     },
@@ -125,17 +125,26 @@ export default {
         let refreshDraft = false
         response.data.forEach((auction) => {
           const oldAuction = previous[auction.player_id]
+          if (!oldAuction || oldAuction.status !== auction.status ||
+            oldAuction.leading_participant_id !== auction.leading_participant_id ||
+            oldAuction.leading_bid !== auction.leading_bid) {
+            this.participantBudgetsDirty = true
+          }
           if (oldAuction && oldAuction.is_current_user_leader && !auction.is_current_user_leader && auction.status === 'open') {
             this.$toast.info(`You were outbid for ${auction.player_name}.`)
           }
           if (oldAuction && oldAuction.status === 'open' && auction.status === 'closed') { refreshDraft = true }
         })
+        if (Object.keys(previous).some(playerId => !next[playerId])) {
+          this.participantBudgetsDirty = true
+        }
         this.auctionsByPlayer = next
+        if (this.participantBudgetsDirty) {
+          await this.get_participants(false)
+          this.participantBudgetsDirty = false
+        }
         if (refreshDraft && this.positions[this.tab]) {
-          await Promise.all([
-            this.get_players_by_position_algorithm(this.positions[this.tab].id),
-            this.get_participants(),
-          ])
+          await this.get_players_by_position_algorithm(this.positions[this.tab].id)
         }
       } catch (error) {
         if (!error.response || error.response.status !== 401) {
@@ -147,6 +156,10 @@ export default {
     },
     auction_for(playerId) {
       return this.auctionsByPlayer[playerId] || null
+    },
+    can_assign_manually(playerId) {
+      const auction = this.auction_for(playerId)
+      return this.isOwner && (!auction || auction.status === 'cancelled')
     },
     can_bid(auction) {
       return Boolean(
@@ -182,13 +195,13 @@ export default {
         : { name: null, budget: this.genericBudget, team: null, user_email: null }
       this.addParticipantDialog = true
     },
-    async get_participants() {
-      this.participantsLoading = true
+    async get_participants(showLoading = true) {
+      if (showLoading) { this.participantsLoading = true }
       try {
         const response = await this.$axios.get(`championship/${this.championshipId}/participant/list`)
         this.participants = response.data
       } finally {
-        this.participantsLoading = false
+        if (showLoading) { this.participantsLoading = false }
       }
     },
     async get_positions() {
@@ -269,16 +282,23 @@ export default {
     },
     open_batch_auction() {
       this.currentAuction = null
+      this.auctionPlayer = null
+      this.configureAuctionDialog = true
+    },
+    open_player_auction(player) {
+      this.currentAuction = null
+      this.auctionPlayer = player
       this.configureAuctionDialog = true
     },
     edit_auction(auction) {
+      this.auctionPlayer = null
       this.currentAuction = auction
       this.configureAuctionDialog = true
     },
     async auction_saved() {
       this.configureAuctionDialog = false
       this.currentAuction = null
-      this.selectedAuctionPlayerIds = []
+      this.auctionPlayer = null
       await this.get_auctions()
     },
     async cancel_auction(auction) {
@@ -294,8 +314,9 @@ export default {
       this.currentAuction = auction
       this.placeBidDialog = true
     },
-    bid_saved(result) {
+    async bid_saved(result) {
       this.placeBidDialog = false
+      this.participantBudgetsDirty = true
       this.$set(this.auctionsByPlayer, result.auction.player_id, result.auction)
       const participantIndex = this.participants.findIndex(
         item => item.id === result.auction.leading_participant_id
@@ -304,6 +325,12 @@ export default {
         this.$set(this.participants[participantIndex], 'budget', result.available_budget)
       }
       this.$toast.success('Bid placed.')
+      try {
+        await this.get_participants(false)
+        this.participantBudgetsDirty = false
+      } catch {
+        this.$toast.error('Bid placed, but balances could not be updated. Retrying automatically.')
+      }
     },
   },
 }

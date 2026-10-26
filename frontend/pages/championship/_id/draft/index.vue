@@ -126,13 +126,14 @@
               <h3 class="card-title">Players</h3>
               <v-spacer />
               <v-btn
-                v-if="isOwner && selectedAuctionPlayerIds.length"
+                v-if="isOwner"
                 small
                 color="primary"
+                :disabled="!positions.length"
                 @click="open_batch_auction"
               >
                 <v-icon left small>mdi-gavel</v-icon>
-                Configure {{ selectedAuctionPlayerIds.length }}
+                Start auctions
               </v-btn>
             </div>
 
@@ -168,14 +169,6 @@
                 :key="`${player.id}-${player.team_participant}-${player.value}-${auction_for(player.id) && auction_for(player.id).leading_bid}`"
                 class="player-card"
               >
-                <v-checkbox
-                  v-if="isOwner && !player.participant_id && !auction_for(player.id)"
-                  v-model="selectedAuctionPlayerIds"
-                  :value="player.id"
-                  class="auction-selector"
-                  hide-details
-                  aria-label="Select player for auction"
-                />
                 <div class="player-image-section">
                   <img 
                     :src="gs.get_image_path(player.image_path)" 
@@ -212,7 +205,7 @@
                     </div>
                   </div>
 
-                  <div v-if="auction_for(player.id)" class="auction-state">
+                  <div v-if="auction_for(player.id) && !(player.participant_id && auction_for(player.id).status === 'cancelled')" class="auction-state" :class="`auction-state--${auction_for(player.id).status}`">
                     <div class="auction-state-row">
                       <span class="auction-status">{{ auction_for(player.id).status }}</span>
                       <AuctionCountdown
@@ -232,7 +225,7 @@
                     </div>
                     <div class="action-buttons">
                       <v-btn 
-                        v-if="isOwner && !auction_for(player.id)"
+                        v-if="can_assign_manually(player.id)"
                         icon 
                         small 
                         color="#10b981" 
@@ -241,8 +234,25 @@
                       >
                         <v-icon size="18">mdi-cash-plus</v-icon>
                       </v-btn>
+                      <v-tooltip v-if="isOwner && !player.participant_id && !auction_for(player.id)" bottom>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            small
+                            color="#60a5fa"
+                            class="action-btn"
+                            :aria-label="`Start auction for ${player.name}`"
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="open_player_auction(player)"
+                          >
+                            <v-icon size="18">mdi-gavel</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>Start auction</span>
+                      </v-tooltip>
                       <v-btn 
-                        v-if="isOwner && player.participant_id && !auction_for(player.id)"
+                        v-if="player.participant_id && can_assign_manually(player.id)"
                         icon 
                         small 
                         color="#ef4444" 
@@ -272,7 +282,7 @@
                         <v-icon size="18" color="#ef4444">mdi-close</v-icon>
                       </v-btn>
                       <v-btn
-                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'cancelled'"
+                        v-if="isOwner && !player.participant_id && auction_for(player.id) && auction_for(player.id).status === 'cancelled'"
                         icon
                         small
                         class="action-btn"
@@ -330,10 +340,12 @@
       />
     </v-dialog>
 
-    <v-dialog v-if="configureAuctionDialog" v-model="configureAuctionDialog" width="500px" max-width="90%">
+    <v-dialog v-if="configureAuctionDialog" v-model="configureAuctionDialog" :width="!currentAuction && !auctionPlayer ? '860px' : '500px'" max-width="90%" scrollable>
       <ConfigureAuction
         :championship-id="championshipId"
-        :player-ids="selectedAuctionPlayerIds"
+        :player="auctionPlayer"
+        :positions="positions"
+        :auctions-by-player="auctionsByPlayer"
         :auction="currentAuction"
         @close="configureAuctionDialog = false"
         @saved="auction_saved"
@@ -381,13 +393,20 @@
 }
 
 .breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 12px;
   margin-bottom: 8px;
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
 }
 
 .breadcrumb-link {
-  color: #3b82f6;
+  color: #93c5fd;
   text-decoration: none;
 }
 
@@ -396,12 +415,13 @@
 }
 
 .breadcrumb-sep {
-  color: rgba(148, 163, 184, 0.6);
+  color: #94a3b8;
   margin: 0 8px;
 }
 
 .breadcrumb-current {
-  color: rgba(203, 213, 225, 0.8);
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
 }
 
 .access-chip {
@@ -667,14 +687,6 @@
   overflow: hidden;
 }
 
-.auction-selector {
-  position: absolute;
-  top: 8px;
-  left: 12px;
-  z-index: 2;
-  margin: 0;
-}
-
 .auction-state {
   display: grid;
   gap: 8px;
@@ -698,6 +710,24 @@
   text-transform: capitalize;
   color: #fbbf24;
   font-weight: 700;
+}
+
+.auction-state--cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.auction-state--cancelled .auction-status {
+  color: #fca5a5;
+}
+
+.auction-state--closed {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(52, 211, 153, 0.45);
+}
+
+.auction-state--closed .auction-status {
+  color: #6ee7b7;
 }
 
 .bid-btn {

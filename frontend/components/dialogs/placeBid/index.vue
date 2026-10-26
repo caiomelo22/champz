@@ -35,7 +35,7 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer />
-      <v-btn text @click="$emit('close')">Cancel</v-btn>
+      <v-btn text class="cancel-button" @click="$emit('close')">Cancel</v-btn>
       <v-btn
         color="primary"
         :loading="saving"
@@ -135,5 +135,16 @@ export default {
   justify-content: space-between;
   margin-bottom: 12px;
   color: rgba(203, 213, 225, 0.85);
+}
+
+.cancel-button {
+  color: #cbd5e1 !important;
+  text-transform: none;
+}
+
+.cancel-button:hover,
+.cancel-button:focus-visible {
+  color: #f1f5f9 !important;
+  background: rgba(148, 163, 184, 0.12);
 }
 </style>
