@@ -1,13 +1,13 @@
-import GeneralServices from "@/services/GeneralServices";
+import PlayerCard from "@/components/players/PlayerCard.vue";
 export default {
   name: 'BuyPlayerDialog',
+  components: { PlayerCard },
   props: {
     participants: Array,
     currentPlayer: Object,
     championshipId: { type: [String, Number], default: null }
   },
   data: () => ({
-    gs: new GeneralServices(),
     participantSelected: null,
     updatingPlayer: false,
     player: null

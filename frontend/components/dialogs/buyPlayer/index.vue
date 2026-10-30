@@ -11,54 +11,9 @@
     
     <v-card-text class="pa-6">
       <div class="player-card-section">
-        <div class="text-center" style="display: flex; justify-content: center; position: relative">
-          <div class="card-info">
-            <div class="card-left-info">
-              <span class="overall-rating">{{ player.overall }}</span>
-              <span class="position-text">{{ player.specific_position.split(',')[0] }}</span>
-              <img class="nation-flag-large" :src="gs.get_image_path(player.nation_image_path)" />
-              <img class="team-logo-large" :src="gs.get_image_path(player.team_origin_image_path)" />
-            </div>
-            <img :src="gs.get_image_path(player.image_path)" class="player-image-large" />
-            <div class="card-name">
-              <span class="player-name-large">{{ player.name }}</span>
-            </div>
-            <div class="card-stats">
-              <div class="vertical-divisor"></div>
-              <div class="card-stats-left">
-                <v-row no-gutters style="justify-content: center;">
-                  <span class="mr-1 card-stat-value">{{ player.pace }}</span>
-                  <span class="mr-1 card-stat-name">PAC</span>
-                </v-row>
-                <v-row no-gutters style="justify-content: center; margin-top: 8px;">
-                  <span class="mr-1 card-stat-value">{{ player.shooting }}</span>
-                  <span class="mr-1 card-stat-name">SHO</span>
-                </v-row>
-                <v-row no-gutters style="justify-content: center; margin-top: 8px;">
-                  <span class="mr-1 card-stat-value">{{ player.passing }}</span>
-                  <span class="mr-1 card-stat-name">PAS</span>
-                </v-row>
-              </div>
-              <div class="card-stats-right text-end">
-                <v-row no-gutters style="justify-content: center;">
-                  <span class="mr-1 card-stat-value">{{ player.dribbling }}</span>
-                  <span class="mr-1 card-stat-name">DRI</span>
-                </v-row>
-                <v-row no-gutters style="justify-content: center; margin-top: 8px;">
-                  <span class="mr-1 card-stat-value">{{ player.defending }}</span>
-                  <span class="mr-1 card-stat-name">DEF</span>
-                </v-row>
-                <v-row no-gutters style="justify-content: center; margin-top: 8px;">
-                  <span class="mr-1 card-stat-value">{{ player.physical }}</span>
-                  <span class="mr-1 card-stat-name">PHY</span>
-                </v-row>
-              </div>
-            </div>
-          </div>
-          <img src="~/assets/gold.png" style="height: 500px; z-index: 1" />
-        </div>
+        <PlayerCard :player="player" />
       </div>
-      
+
       <form v-on:submit.prevent="buy_player()" class="form-section">
         <div class="input-group">
           <label class="input-label">Value</label>
@@ -151,68 +106,9 @@
 }
 
 .player-card-section {
+  display: flex;
+  justify-content: center;
   margin-bottom: 32px;
-}
-
-.overall-rating {
-  margin-bottom: 10px;
-  font-size: 40px;
-  font-weight: bold;
-  z-index: 2;
-  color: #1e293b;
-  font-family: 'DM Sans', sans-serif;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.position-text {
-  font-size: 25px;
-  z-index: 2;
-  color: #1e293b;
-  font-family: 'DM Sans', sans-serif;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.nation-flag-large {
-  width: 60px;
-  z-index: 2;
-  margin: auto;
-  border-radius: 4px;
-}
-
-.team-logo-large {
-  width: 60px;
-  z-index: 2;
-  margin: auto;
-  border-radius: 50%;
-}
-
-.player-image-large {
-  max-height: 160px;
-  z-index: 2;
-  position: absolute;
-  top: 100px;
-  left: -28px;
-}
-
-.player-name-large {
-  font-weight: 700;
-  font-size: 20px;
-  color: #1e293b;
-  font-family: 'DM Sans', sans-serif;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.card-stat-value {
-  color: #1e293b;
-  font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.card-stat-name {
-  color: #334155;
-  font-family: 'DM Sans', sans-serif;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .form-section {

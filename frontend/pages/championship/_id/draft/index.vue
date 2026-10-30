@@ -175,145 +175,160 @@
               <p class="empty-subtext">Select a different position</p>
             </div>
 
-            <div v-else-if="tab != -1" class="players-grid">
-              <div 
-                v-for="player in selectedPosition" 
-                :key="`${player.id}-${player.team_participant}-${player.value}-${auction_for(player.id) && auction_for(player.id).leading_bid}`"
-                class="player-card"
-              >
-                <div class="player-image-section">
-                  <img 
-                    :src="gs.get_image_path(player.image_path)" 
-                    class="player-image"
-                    :alt="player.name"
-                  />
-                  <div class="player-badges">
-                    <div class="overall-badge">{{ player.overall }}</div>
-                    <img 
-                      :src="gs.get_image_path(player.nation_image_path)" 
-                      class="nation-flag"
-                      :alt="player.nation"
-                    />
-                  </div>
+            <div v-else-if="tab != -1" class="players-table-wrapper">
+              <div class="players-table" role="table" aria-label="Players">
+                <div class="players-row players-row--header" role="row">
+                  <span role="columnheader">Player</span>
+                  <span role="columnheader" class="col-center">OVR</span>
+                  <span role="columnheader">Owner</span>
+                  <span role="columnheader">Auction</span>
+                  <span role="columnheader" class="col-center">Price</span>
+                  <span role="columnheader" class="col-actions"><span class="sr-only">Actions</span></span>
                 </div>
-                
-                <div class="player-info-section">
-                  <h4 class="player-name">{{ player.name }}</h4>
-                  <p class="player-position">{{ player.specific_position }}</p>
-                  
-                  <div class="player-meta">
-                    <div class="team-info">
-                      <img 
-                        :src="gs.get_image_path(player.team_origin_image_path)" 
-                        class="club-logo"
-                        :alt="player.team"
-                      />
-                    </div>
-                    <div class="owner-info">
-                      <span class="owner-label">Owner:</span>
-                      <span class="owner-name">
-                        {{ player.team_participant ? get_participant_name(player.participant_id) : "Available" }}
-                      </span>
+
+                <div
+                  v-for="player in selectedPosition"
+                  :key="`${player.id}-${player.team_participant}-${player.value}-${auction_for(player.id) && auction_for(player.id).leading_bid}`"
+                  class="players-row"
+                  role="row"
+                >
+                  <div class="player-cell" role="cell">
+                    <img
+                      :src="gs.get_image_path(player.image_path)"
+                      class="player-photo"
+                      :alt="player.name"
+                    />
+                    <div class="player-identity">
+                      <span class="player-name">{{ player.name }}</span>
+                      <div class="player-details">
+                        <img
+                          :src="gs.get_image_path(player.nation_image_path)"
+                          class="nation-flag"
+                          :alt="player.nation"
+                        />
+                        <img
+                          :src="gs.get_image_path(player.team_origin_image_path)"
+                          class="club-logo"
+                          :alt="player.team_origin_name"
+                        />
+                        <span class="player-positions">{{ player.specific_position }}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div v-if="auction_for(player.id) && !(player.participant_id && auction_for(player.id).status === 'cancelled')" class="auction-state" :class="`auction-state--${auction_for(player.id).status}`">
-                    <div class="auction-state-row">
-                      <span class="auction-status">{{ auction_for(player.id).status }}</span>
-                      <AuctionCountdown
-                        v-if="auction_for(player.id).status === 'open'"
-                        :deadline="auction_for(player.id).deadline"
-                      />
-                    </div>
-                    <div class="auction-state-row">
-                      <span>{{ auction_for(player.id).leading_participant_name || 'No bids yet' }}</span>
-                      <strong>${{ auction_for(player.id).leading_bid || auction_for(player.id).minimum_bid }}</strong>
-                    </div>
+                  <div class="col-center" role="cell">
+                    <span class="overall-box">{{ player.overall }}</span>
                   </div>
-                  
-                  <div class="player-footer">
-                    <div class="price-section">
-                      <span v-if="player.value != null" class="price">${{ player.value }}</span>
+
+                  <div role="cell" class="owner-cell">
+                    <span v-if="player.team_participant" class="owner-name">{{ get_participant_name(player.participant_id) }}</span>
+                    <span v-else class="owner-available">Available</span>
+                  </div>
+
+                  <div role="cell">
+                    <div
+                      v-if="auction_for(player.id) && !(player.participant_id && auction_for(player.id).status === 'cancelled')"
+                      class="auction-state"
+                      :class="`auction-state--${auction_for(player.id).status}`"
+                    >
+                      <div class="auction-state-row">
+                        <span class="auction-status">{{ auction_for(player.id).status }}</span>
+                        <AuctionCountdown
+                          v-if="auction_for(player.id).status === 'open'"
+                          :deadline="auction_for(player.id).deadline"
+                        />
+                      </div>
+                      <div class="auction-state-row auction-leader">
+                        <span>{{ auction_for(player.id).leading_participant_name || 'No bids yet' }}</span>
+                        <strong>${{ auction_for(player.id).leading_bid || auction_for(player.id).minimum_bid }}</strong>
+                      </div>
                     </div>
-                    <div class="action-buttons">
-                      <v-btn 
-                        v-if="can_assign_manually(player.id)"
-                        icon 
-                        small 
-                        color="#10b981" 
-                        @click="get_player(player)"
-                        class="action-btn"
-                      >
-                        <v-icon size="18">mdi-cash-plus</v-icon>
-                      </v-btn>
-                      <v-tooltip v-if="isOwner && !player.participant_id && !auction_for(player.id)" bottom>
-                        <template #activator="{ on, attrs }">
-                          <v-btn
-                            icon
-                            small
-                            color="#60a5fa"
-                            class="action-btn"
-                            :aria-label="`Start auction for ${player.name}`"
-                            v-bind="attrs"
-                            v-on="on"
-                            @click="open_player_auction(player)"
-                          >
-                            <v-icon size="18">mdi-gavel</v-icon>
-                          </v-btn>
-                        </template>
-                        <span>Start auction</span>
-                      </v-tooltip>
-                      <v-btn 
-                        v-if="player.participant_id && can_assign_manually(player.id)"
-                        icon 
-                        small 
-                        color="#ef4444" 
-                        @click="remove_buy(player)"
-                        class="action-btn"
-                      >
-                        <v-icon size="18">mdi-cash-minus</v-icon>
-                      </v-btn>
-                      <v-btn
-                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'open'"
-                        icon
-                        small
-                        class="action-btn"
-                        title="Edit auction"
-                        @click="edit_auction(auction_for(player.id))"
-                      >
-                        <v-icon size="18" color="#3b82f6">mdi-pencil</v-icon>
-                      </v-btn>
-                      <v-btn
-                        v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'open'"
-                        icon
-                        small
-                        class="action-btn"
-                        title="Cancel auction"
-                        @click="cancel_auction(auction_for(player.id))"
-                      >
-                        <v-icon size="18" color="#ef4444">mdi-close</v-icon>
-                      </v-btn>
-                      <v-btn
-                        v-if="isOwner && !player.participant_id && auction_for(player.id) && auction_for(player.id).status === 'cancelled'"
-                        icon
-                        small
-                        class="action-btn"
-                        title="Restart auction"
-                        @click="edit_auction(auction_for(player.id))"
-                      >
-                        <v-icon size="18" color="#3b82f6">mdi-restart</v-icon>
-                      </v-btn>
-                      <v-btn
-                        v-if="can_bid(auction_for(player.id))"
-                        small
-                        color="primary"
-                        class="bid-btn"
-                        @click="open_bid(auction_for(player.id))"
-                      >
-                        <v-icon left small>mdi-gavel</v-icon>
-                        Bid
-                      </v-btn>
-                    </div>
+                    <span v-else class="cell-empty">—</span>
+                  </div>
+
+                  <div class="col-center" role="cell">
+                    <span v-if="player.value != null" class="price">${{ player.value }}</span>
+                    <span v-else class="cell-empty">—</span>
+                  </div>
+
+                  <div class="action-buttons col-actions" role="cell">
+                    <v-btn
+                      v-if="can_assign_manually(player.id)"
+                      icon
+                      small
+                      color="#10b981"
+                      @click="get_player(player)"
+                      class="action-btn"
+                    >
+                      <v-icon size="18">mdi-cash-plus</v-icon>
+                    </v-btn>
+                    <v-tooltip v-if="isOwner && !player.participant_id && !auction_for(player.id)" bottom>
+                      <template #activator="{ on, attrs }">
+                        <v-btn
+                          icon
+                          small
+                          color="#60a5fa"
+                          class="action-btn"
+                          :aria-label="`Start auction for ${player.name}`"
+                          v-bind="attrs"
+                          v-on="on"
+                          @click="open_player_auction(player)"
+                        >
+                          <v-icon size="18">mdi-gavel</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Start auction</span>
+                    </v-tooltip>
+                    <v-btn
+                      v-if="player.participant_id && can_assign_manually(player.id)"
+                      icon
+                      small
+                      color="#ef4444"
+                      @click="remove_buy(player)"
+                      class="action-btn"
+                    >
+                      <v-icon size="18">mdi-cash-minus</v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'open'"
+                      icon
+                      small
+                      class="action-btn"
+                      title="Edit auction"
+                      @click="edit_auction(auction_for(player.id))"
+                    >
+                      <v-icon size="18" color="#3b82f6">mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="isOwner && auction_for(player.id) && auction_for(player.id).status === 'open'"
+                      icon
+                      small
+                      class="action-btn"
+                      title="Cancel auction"
+                      @click="cancel_auction(auction_for(player.id))"
+                    >
+                      <v-icon size="18" color="#ef4444">mdi-close</v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="isOwner && !player.participant_id && auction_for(player.id) && auction_for(player.id).status === 'cancelled'"
+                      icon
+                      small
+                      class="action-btn"
+                      title="Restart auction"
+                      @click="edit_auction(auction_for(player.id))"
+                    >
+                      <v-icon size="18" color="#3b82f6">mdi-restart</v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="can_bid(auction_for(player.id))"
+                      small
+                      color="primary"
+                      class="bid-btn"
+                      @click="open_bid(auction_for(player.id))"
+                    >
+                      <v-icon left small>mdi-gavel</v-icon>
+                      Bid
+                    </v-btn>
                   </div>
                 </div>
               </div>
@@ -691,40 +706,186 @@
   display: none;
 }
 
-/* Players Grid */
-.players-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+/* Players List */
+.players-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.5);
 }
 
-.player-card {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(100, 116, 139, 0.3);
-  border-radius: 20px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  position: relative;
+.players-table {
+  min-width: 640px;
+}
+
+.players-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 2.2fr) 56px minmax(80px, 1fr) minmax(140px, 1.4fr) 64px minmax(72px, auto);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+  transition: background 0.2s ease;
+}
+
+.players-row:last-child {
+  border-bottom: none;
+}
+
+.players-row:not(.players-row--header):hover {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.players-row--header {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  color: rgba(148, 163, 184, 0.9);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.col-center {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.col-actions {
+  justify-content: flex-end;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.player-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.player-photo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(100, 116, 139, 0.4);
+}
+
+.player-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.player-name {
+  color: rgba(226, 232, 240, 0.95);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nation-flag {
+  width: 22px;
+  height: 14px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid rgba(100, 116, 139, 0.4);
+}
+
+.club-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.player-positions {
+  color: rgba(148, 163, 184, 0.85);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overall-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(96, 165, 250, 0.6);
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.owner-cell {
+  min-width: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+}
+
+.owner-name {
+  color: rgba(226, 232, 240, 0.95);
+  font-weight: 600;
+}
+
+.owner-available,
+.cell-empty {
+  color: rgba(148, 163, 184, 0.7);
 }
 
 .auction-state {
   display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 12px;
+  gap: 2px;
+  padding: 6px 10px;
   background: rgba(30, 41, 59, 0.75);
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: 8px;
   color: rgba(226, 232, 240, 0.9);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .auction-state-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+}
+
+.auction-leader span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .auction-status {
@@ -755,155 +916,22 @@
   text-transform: none;
 }
 
-.player-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-}
-
-.player-card:hover {
-  background: rgba(30, 41, 59, 0.7);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-  border-color: rgba(59, 130, 246, 0.4);
-}
-
-.player-image-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  margin-bottom: 16px;
-}
-
-.player-image {
-  width: 96px;
-  height: 96px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid rgba(100, 116, 139, 0.4);
-}
-
-.player-badges {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-}
-
-.overall-badge {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-  font-family: 'DM Sans', sans-serif;
-}
-
-.nation-flag {
-  width: 32px;
-  height: 20px;
-  object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid rgba(100, 116, 139, 0.4);
-}
-
-.player-info-section {
-  text-align: center;
-}
-
-.player-name {
-  color: rgba(226, 232, 240, 0.95);
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin: 0 0 4px 0;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.player-position {
-  color: rgba(148, 163, 184, 0.8);
-  font-size: 0.9rem;
-  margin: 0 0 16px 0;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.player-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 12px;
-  border: 1px solid rgba(100, 116, 139, 0.2);
-}
-
-.team-info {
-  display: flex;
-  align-items: center;
-}
-
-.club-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 1px solid rgba(100, 116, 139, 0.4);
-}
-
-.owner-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.owner-label {
-  color: rgba(148, 163, 184, 0.7);
-  font-size: 0.75rem;
-  margin-bottom: 2px;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.owner-name {
-  color: rgba(226, 232, 240, 0.9);
-  font-weight: 600;
-  font-size: 0.85rem;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.player-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.price-section {
-  flex: 1;
-}
-
 .price {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 12px;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  font-family: 'DM Sans', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  font-size: 0.9rem;
 }
 
 .action-buttons {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .action-btn {
@@ -936,10 +964,6 @@
   
   .page-title {
     font-size: 2rem;
-  }
-  
-  .players-grid {
-    grid-template-columns: 1fr;
   }
   
   .participant-item {
