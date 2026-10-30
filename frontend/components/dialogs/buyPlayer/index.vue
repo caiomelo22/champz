@@ -1,17 +1,10 @@
 <template>
   <v-card class="buy-player-dialog">
-    <v-card-title class="dialog-header">
-      <div class="header-content">
-        <div class="icon-wrapper">
-          <v-icon color="white" size="24">mdi-cash-plus</v-icon>
-        </div>
-        <h3 class="dialog-title">Buy Player</h3>
-      </div>
-    </v-card-title>
+    <DialogHeader title="Buy Player" icon="mdi-cash-plus" @close="$emit('close')" />
     
-    <v-card-text class="pa-6">
+    <v-card-text class="pa-5">
       <div class="player-card-section">
-        <PlayerCard :player="player" />
+        <PlayerCard :player="player" :width="200" />
       </div>
 
       <form v-on:submit.prevent="buy_player()" class="form-section">
@@ -22,6 +15,7 @@
             v-model="player.value" 
             prefix="$"
             solo
+            dense
             flat
             hide-details
             class="professional-input"
@@ -36,6 +30,7 @@
             item-text="name" 
             @change="player.team_participant = participantSelected.team_name"
             solo
+            dense
             flat
             hide-details
             class="professional-input"
@@ -74,47 +69,16 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-.dialog-header {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
-  border-bottom: 1px solid rgba(100, 116, 139, 0.3);
-  padding: 24px !important;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.icon-wrapper {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-radius: 12px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.dialog-title {
-  color: rgba(226, 232, 240, 0.95);
-  font-weight: 700;
-  font-size: 1.5rem;
-  margin: 0;
-  font-family: 'DM Sans', sans-serif;
-}
-
 .player-card-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .form-section {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .input-group {

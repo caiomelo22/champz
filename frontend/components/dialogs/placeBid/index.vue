@@ -1,7 +1,10 @@
 <template>
   <v-card class="bid-dialog">
-    <v-card-title>Bid for {{ auction.player_name }}</v-card-title>
+    <DialogHeader :title="`Bid for ${auction.player_name}`" icon="mdi-gavel" @close="$emit('close')" />
     <v-card-text>
+      <div v-if="player" class="bid-card">
+        <PlayerCard :player="player" :width="200" />
+      </div>
       <div class="bid-summary">
         <span>Current bid</span>
         <strong>${{ auction.leading_bid || auction.minimum_bid }}</strong>
@@ -14,6 +17,7 @@
         item-value="id"
         label="Bid for participant"
         outlined
+        dense
         dark
       />
       <div class="bid-summary">
@@ -27,6 +31,7 @@
         :min="minimumAmount"
         prefix="$"
         outlined
+        dense
         dark
         autofocus
         @keyup.enter="submit"
@@ -49,11 +54,16 @@
 </template>
 
 <script>
+import DialogHeader from '@/components/dialogs/DialogHeader.vue'
+import PlayerCard from '@/components/players/PlayerCard.vue'
+
 export default {
   name: 'PlaceBidDialog',
+  components: { DialogHeader, PlayerCard },
   props: {
     championshipId: { type: [String, Number], required: true },
     auction: { type: Object, required: true },
+    player: { type: Object, default: null },
     availableBudget: { type: Number, required: true },
     participants: { type: Array, default: () => [] },
     isOwner: { type: Boolean, default: false },
@@ -123,6 +133,12 @@ export default {
 </script>
 
 <style scoped>
+.bid-card {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 16px;
+}
+
 .bid-dialog {
   background: #1e293b !important;
   color: rgba(226, 232, 240, 0.95);
@@ -133,7 +149,8 @@ export default {
 .bid-summary {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
   color: rgba(203, 213, 225, 0.85);
 }
 

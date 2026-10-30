@@ -1,7 +1,9 @@
+import DialogHeader from "@/components/dialogs/DialogHeader.vue";
 import GeneralServices from "@/services/GeneralServices.js";
 
 export default {
   name: 'RegisterScoreDialog',
+  components: { DialogHeader },
   props: {
     currentMatch: Object
   },

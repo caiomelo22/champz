@@ -1,6 +1,6 @@
 <template>
   <v-card class="pool-dialog" dark>
-    <v-card-title>Draft players</v-card-title>
+    <DialogHeader title="Draft players" icon="mdi-format-list-checks" @close="$emit('close')" />
     <v-card-text class="dialog-content">
       <div v-if="loading" class="loading-players" role="status">
         <v-progress-circular indeterminate size="24" color="#60a5fa" />
@@ -25,10 +25,11 @@
 
 <script>
 import DraftPoolSelection from '@/components/draftPool/DraftPoolSelection.vue'
+import DialogHeader from '@/components/dialogs/DialogHeader.vue'
 
 export default {
   name: 'DraftPoolDialog',
-  components: { DraftPoolSelection },
+  components: { DialogHeader, DraftPoolSelection },
   props: {
     championshipId: { type: [String, Number], required: true },
     positions: { type: Array, default: () => [] },

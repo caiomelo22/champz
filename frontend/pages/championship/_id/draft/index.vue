@@ -13,7 +13,7 @@
     </div>
     
     <v-row>
-      <v-col cols="12" md="5" class="pl-0 pr-3 pt-0">
+      <v-col cols="12" md="5" class="px-0 pr-md-3 pt-0">
         <!-- Budget Card -->
         <v-card class="budget-card mb-6" elevation="0">
           <v-card-text class="pa-6">
@@ -115,38 +115,37 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="7" class="pr-0 pl-3 pt-0">
+      <v-col cols="12" md="7" class="px-0 pl-md-3 pt-0">
         <!-- Players Card -->
         <v-card class="players-card" elevation="0">
-          <v-card-text class="pa-6">
-            <div class="card-header mb-4">
+          <v-card-text class="pa-4 pa-sm-6">
+            <div class="card-header players-header mb-4">
               <div class="icon-wrapper">
                 <v-icon color="white" size="20">mdi-soccer</v-icon>
               </div>
               <h3 class="card-title">Players</h3>
-              <v-spacer />
-              <v-btn
-                v-if="isOwner && championshipStatus === 'draft'"
-                small
-                outlined
-                color="#93c5fd"
-                class="mr-2"
-                :disabled="!positions.length"
-                @click="draftPoolDialog = true"
-              >
-                <v-icon left small>mdi-format-list-checks</v-icon>
-                Draft players
-              </v-btn>
-              <v-btn
-                v-if="isOwner"
-                small
-                color="primary"
-                :disabled="!positions.length"
-                @click="open_batch_auction"
-              >
-                <v-icon left small>mdi-gavel</v-icon>
-                Start auctions
-              </v-btn>
+              <div v-if="isOwner" class="header-actions">
+                <v-btn
+                  v-if="championshipStatus === 'draft'"
+                  small
+                  outlined
+                  color="#93c5fd"
+                  :disabled="!positions.length"
+                  @click="draftPoolDialog = true"
+                >
+                  <v-icon left small>mdi-format-list-checks</v-icon>
+                  Draft players
+                </v-btn>
+                <v-btn
+                  small
+                  color="primary"
+                  :disabled="!positions.length"
+                  @click="open_batch_auction"
+                >
+                  <v-icon left small>mdi-gavel</v-icon>
+                  Start auctions
+                </v-btn>
+              </div>
             </div>
 
             <v-tabs 
@@ -183,7 +182,7 @@
                   <span role="columnheader">Owner</span>
                   <span role="columnheader">Auction</span>
                   <span role="columnheader" class="col-center">Price</span>
-                  <span role="columnheader" class="col-actions"><span class="sr-only">Actions</span></span>
+                  <span role="columnheader" class="col-actions">Actions</span>
                 </div>
 
                 <div
@@ -216,18 +215,18 @@
                     </div>
                   </div>
 
-                  <div class="col-center" role="cell">
+                  <div class="col-center cell-ovr" role="cell">
                     <span class="overall-box">{{ player.overall }}</span>
                   </div>
 
-                  <div role="cell" class="owner-cell">
+                  <div role="cell" class="owner-cell" data-label="Owner">
                     <span v-if="player.team_participant" class="owner-name">{{ get_participant_name(player.participant_id) }}</span>
                     <span v-else class="owner-available">Available</span>
                   </div>
 
-                  <div role="cell">
+                  <div role="cell" class="cell-auction" :class="{ 'cell-auction--empty': !shows_auction(player) }">
                     <div
-                      v-if="auction_for(player.id) && !(player.participant_id && auction_for(player.id).status === 'cancelled')"
+                      v-if="shows_auction(player)"
                       class="auction-state"
                       :class="`auction-state--${auction_for(player.id).status}`"
                     >
@@ -246,12 +245,12 @@
                     <span v-else class="cell-empty">—</span>
                   </div>
 
-                  <div class="col-center" role="cell">
+                  <div class="col-center cell-price" role="cell" data-label="Price">
                     <span v-if="player.value != null" class="price">${{ player.value }}</span>
                     <span v-else class="cell-empty">—</span>
                   </div>
 
-                  <div class="action-buttons col-actions" role="cell">
+                  <div class="action-buttons col-actions cell-actions" role="cell">
                     <v-btn
                       v-if="can_assign_manually(player.id)"
                       icon
@@ -324,7 +323,7 @@
                       small
                       color="primary"
                       class="bid-btn"
-                      @click="open_bid(auction_for(player.id))"
+                      @click="open_bid(auction_for(player.id), player)"
                     >
                       <v-icon left small>mdi-gavel</v-icon>
                       Bid
@@ -349,7 +348,7 @@
       />
     </v-dialog>
 
-    <v-dialog v-if="buyPlayerDialog" v-model="buyPlayerDialog" width="500px" max-width="90%" persistent>
+    <v-dialog v-if="buyPlayerDialog" v-model="buyPlayerDialog" width="420px" max-width="90%" scrollable>
       <BuyPlayer 
         :participants="participants" 
         :current-player="currentPlayer" 
@@ -364,6 +363,7 @@
         :selected-team="selectedTeam" 
         :current-participant="currentParticipant" 
         @remove="remove_buy" 
+        @close="participantTeamDialog = false"
       />
     </v-dialog>
 
@@ -388,10 +388,11 @@
       />
     </v-dialog>
 
-    <v-dialog v-if="placeBidDialog && currentAuction" v-model="placeBidDialog" width="500px" max-width="90%">
+    <v-dialog v-if="placeBidDialog && currentAuction" v-model="placeBidDialog" width="420px" max-width="90%" scrollable>
       <PlaceBid
         :championship-id="championshipId"
         :auction="currentAuction"
+        :player="bidPlayer"
         :available-budget="availableBudget"
         :participants="participants"
         :is-owner="isOwner"
@@ -497,6 +498,17 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.players-header {
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .flex-header {
@@ -674,17 +686,22 @@
 
 /* Tabs */
 .position-tabs ::v-deep .v-tabs-bar {
+  height: 38px;
   background: transparent !important;
   border-radius: 16px;
 }
 
 .position-tabs ::v-deep .v-tab {
+  min-width: 0;
+  padding: 0 14px;
   background: rgba(15, 23, 42, 0.6) !important;
   border: 1px solid rgba(100, 116, 139, 0.4) !important;
-  border-radius: 12px;
-  margin: 0 4px;
+  border-radius: 10px;
+  margin: 0 3px;
   color: rgba(148, 163, 184, 0.9) !important;
   text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.3s ease;
   font-family: 'DM Sans', sans-serif;
@@ -694,7 +711,7 @@
   background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
   color: white !important;
   border-color: rgba(59, 130, 246, 0.6) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .position-tabs ::v-deep .v-tab:hover:not(.v-tab--active) {
@@ -715,12 +732,13 @@
 }
 
 .players-table {
-  min-width: 640px;
+  width: max-content;
+  min-width: 100%;
 }
 
 .players-row {
   display: grid;
-  grid-template-columns: minmax(190px, 2.2fr) 56px minmax(80px, 1fr) minmax(140px, 1.4fr) 64px minmax(72px, auto);
+  grid-template-columns: minmax(190px, 2.2fr) 56px minmax(80px, 1fr) minmax(140px, 1.4fr) 64px 112px;
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
@@ -756,15 +774,7 @@
 
 .col-actions {
   justify-content: flex-end;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+  text-align: right;
 }
 
 .player-cell {
@@ -954,6 +964,87 @@
 .add-btn:hover {
   transform: rotate(90deg) scale(1.1) !important;
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Phones: each row becomes a stacked block instead of a scrolling table */
+@media (max-width: 600px) {
+  .players-table-wrapper {
+    overflow-x: visible;
+  }
+
+  .players-table {
+    width: auto;
+  }
+
+  .players-row--header {
+    display: none;
+  }
+
+  .players-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "player ovr"
+      "owner price"
+      "auction auction"
+      "actions actions";
+    row-gap: 10px;
+    padding: 14px;
+  }
+
+  .player-cell { grid-area: player; }
+  .cell-ovr { grid-area: ovr; }
+  .owner-cell { grid-area: owner; }
+  .cell-price { grid-area: price; }
+  .cell-auction { grid-area: auction; }
+  .cell-actions { grid-area: actions; }
+
+  .cell-auction--empty {
+    display: none;
+  }
+
+  .owner-cell::before,
+  .cell-price::before {
+    content: attr(data-label);
+    margin-right: 6px;
+    color: rgba(148, 163, 184, 0.7);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .cell-price {
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .cell-actions {
+    justify-content: flex-end;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .header-actions .v-btn {
+    width: 100%;
+  }
+
+  .position-tabs ::v-deep .v-tabs-bar {
+    height: 32px;
+  }
+
+  .position-tabs ::v-deep .v-tab {
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .position-tabs ::v-deep .v-slide-group__prev,
+  .position-tabs ::v-deep .v-slide-group__next {
+    min-width: 28px;
+    flex-basis: 28px;
+  }
 }
 
 /* Responsive Design */

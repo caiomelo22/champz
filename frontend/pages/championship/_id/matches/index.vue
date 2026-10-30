@@ -220,7 +220,7 @@
     </div>
 
     <!-- Dialogs -->
-    <v-dialog v-model="resetConfirmationDialog" max-width="500" persistent>
+    <v-dialog v-model="resetConfirmationDialog" max-width="440">
       <Confirmation 
         text="Are you sure that you want to reset the matches? All of the current groups are going to be erased." 
         @close="resetConfirmationDialog = false"

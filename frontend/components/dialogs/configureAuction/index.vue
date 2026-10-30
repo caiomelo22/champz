@@ -1,6 +1,6 @@
 <template>
   <v-card class="auction-dialog" dark>
-    <v-card-title>{{ dialogTitle }}</v-card-title>
+    <DialogHeader :title="dialogTitle" icon="mdi-gavel" @close="$emit('close')" />
     <v-card-text class="dialog-content">
       <div v-if="player" class="single-player">
         <span>{{ player.name }}</span>
@@ -55,10 +55,11 @@
 
 <script>
 import AuctionPlayerSelection from '@/components/auctions/AuctionPlayerSelection.vue'
+import DialogHeader from '@/components/dialogs/DialogHeader.vue'
 
 export default {
   name: 'ConfigureAuctionDialog',
-  components: { AuctionPlayerSelection },
+  components: { AuctionPlayerSelection, DialogHeader },
   props: {
     championshipId: { type: [String, Number], required: true },
     player: { type: Object, default: null },

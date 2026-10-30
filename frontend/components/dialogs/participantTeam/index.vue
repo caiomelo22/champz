@@ -1,15 +1,8 @@
 <template>
   <v-card class="participant-team-dialog">
-    <v-card-title class="dialog-header">
-      <div class="header-content">
-        <div class="icon-wrapper">
-          <v-icon color="white" size="24">mdi-account-group</v-icon>
-        </div>
-        <h3 class="dialog-title">{{ currentParticipant.name }}'s Team</h3>
-      </div>
-    </v-card-title>
+    <DialogHeader :title="`${currentParticipant.name}'s Team`" icon="mdi-account-group" @close="$emit('close')" />
     
-    <v-card-text class="pa-6">
+    <v-card-text class="pa-5">
       <div v-if="!selectedTeam || selectedTeam.length === 0" class="empty-state">
         <v-icon size="64" color="rgba(148, 163, 184, 0.5)">mdi-account-question</v-icon>
         <h4 class="empty-title">No Players Found</h4>
@@ -84,37 +77,6 @@
   border-radius: 24px !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 800px;
-}
-
-.dialog-header {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
-  border-bottom: 1px solid rgba(100, 116, 139, 0.3);
-  padding: 24px !important;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.icon-wrapper {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border-radius: 12px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.dialog-title {
-  color: rgba(226, 232, 240, 0.95);
-  font-weight: 700;
-  font-size: 1.5rem;
-  margin: 0;
-  font-family: 'DM Sans', sans-serif;
 }
 
 .empty-state {

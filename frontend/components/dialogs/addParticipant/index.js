@@ -1,5 +1,7 @@
+import DialogHeader from "@/components/dialogs/DialogHeader.vue";
 export default {
   name: 'AddParticipantDialog',
+  components: { DialogHeader },
   data: () => ({
     updatingParticipant: false,
     selectedTeam: null,

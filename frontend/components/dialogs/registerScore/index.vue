@@ -1,15 +1,8 @@
 <template>
   <v-card class="register-score-dialog">
-    <v-card-title class="dialog-header">
-      <div class="header-content">
-        <div class="icon-wrapper">
-          <v-icon color="white" size="24">mdi-scoreboard</v-icon>
-        </div>
-        <h3 class="dialog-title">Register Score</h3>
-      </div>
-    </v-card-title>
+    <DialogHeader title="Register Score" icon="mdi-scoreboard" @close="$emit('close')" />
     
-    <v-card-text class="pa-6">
+    <v-card-text class="pa-5">
       <form @submit.prevent="registerScore()" class="score-form">
         <div class="match-header">
           <div class="team-section">
@@ -46,6 +39,7 @@
               min="0" 
               required
               solo
+              dense
               flat
               hide-details
               class="professional-input score-field"
@@ -64,6 +58,7 @@
               min="0" 
               required
               solo
+              dense
               flat
               hide-details
               class="professional-input score-field"
@@ -107,47 +102,16 @@
   max-width: 600px;
 }
 
-.dialog-header {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
-  border-bottom: 1px solid rgba(100, 116, 139, 0.3);
-  padding: 24px !important;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.icon-wrapper {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-radius: 12px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.dialog-title {
-  color: rgba(226, 232, 240, 0.95);
-  font-weight: 700;
-  font-size: 1.5rem;
-  margin: 0;
-  font-family: 'DM Sans', sans-serif;
-}
-
 .score-form {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px;
 }
 
 .match-header {
   background: rgba(15, 23, 42, 0.4);
   border-radius: 16px;
-  padding: 24px;
+  padding: 16px;
   border: 1px solid rgba(100, 116, 139, 0.2);
 }
 

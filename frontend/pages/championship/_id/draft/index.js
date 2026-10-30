@@ -42,6 +42,7 @@ export default {
     currentPlayer: null,
     currentParticipant: {},
     currentAuction: null,
+    bidPlayer: null,
     selectedTeam: null,
     newParticipant: { name: null, budget: null, team: null, user_email: null },
     championshipName: '',
@@ -161,6 +162,10 @@ export default {
     },
     auction_for(playerId) {
       return this.auctionsByPlayer[playerId] || null
+    },
+    shows_auction(player) {
+      const auction = this.auction_for(player.id)
+      return Boolean(auction) && !(player.participant_id && auction.status === 'cancelled')
     },
     can_assign_manually(playerId) {
       const auction = this.auction_for(playerId)
@@ -320,8 +325,9 @@ export default {
         this.$toast.error(detail || 'Auction could not be cancelled.')
       }
     },
-    open_bid(auction) {
+    open_bid(auction, player) {
       this.currentAuction = auction
+      this.bidPlayer = player
       this.placeBidDialog = true
     },
     async bid_saved(result) {

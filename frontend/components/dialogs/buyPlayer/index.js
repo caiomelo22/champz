@@ -1,7 +1,8 @@
+import DialogHeader from "@/components/dialogs/DialogHeader.vue";
 import PlayerCard from "@/components/players/PlayerCard.vue";
 export default {
   name: 'BuyPlayerDialog',
-  components: { PlayerCard },
+  components: { DialogHeader, PlayerCard },
   props: {
     participants: Array,
     currentPlayer: Object,

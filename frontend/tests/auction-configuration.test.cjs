@@ -8,9 +8,9 @@ const compiler = require('vue-template-compiler')
 function loadComponent(relativePath) {
   const source = fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8')
   const script = compiler.parseComponent(source).script.content
-    .replace(/^import .+$/gm, '')
+    .replace(/^import (\w+) .+$/gm, 'const $1 = {}')
     .replace('export default', 'return')
-  return new Function('AuctionPlayerSelection', script)({})
+  return new Function(script)()
 }
 
 function instance(component, props = {}) {
@@ -96,9 +96,11 @@ test('manual assignment is available only to managers for absent or cancelled au
 })
 
 test('cancelled banner disappears after manual assignment without hiding other auction states', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../pages/championship/_id/draft/index.vue'), 'utf8')
-  const condition = source.match(/<div v-if="([^"]+)" class="auction-state"[^>]*>/)[1]
-  const visible = new Function('player', 'auction_for', `return Boolean(${condition})`)
+  const script = fs.readFileSync(path.join(__dirname, '../pages/championship/_id/draft/index.js'), 'utf8')
+    .replace(/^import (\w+) .+$/gm, 'const $1 = {}')
+    .replace('export default', 'return')
+  const draft = new Function(script)()
+  const visible = (player, auction_for) => draft.methods.shows_auction.call({ auction_for }, player)
   const available = { id: 4, participant_id: null }
   const assigned = { id: 4, participant_id: 5 }
   assert.equal(visible(available, () => ({ status: 'cancelled' })), true)
@@ -110,7 +112,7 @@ test('cancelled banner disappears after manual assignment without hiding other a
 
 test('auction banner receives a style variant matching its status', () => {
   const source = fs.readFileSync(path.join(__dirname, '../pages/championship/_id/draft/index.vue'), 'utf8')
-  const binding = source.match(/class="auction-state" :class="([^"]+)"/)[1]
+  const binding = source.match(/class="auction-state"\s+:class="([^"]+)"/)[1]
   const variant = new Function('player', 'auction_for', `return ${binding}`)
   for (const status of ['open', 'cancelled', 'closed']) {
     assert.equal(variant({ id: 1 }, () => ({ status })), `auction-state--${status}`)

@@ -1,5 +1,5 @@
 <template>
-  <div class="fut-card" role="img" :aria-label="`${player.name}, overall ${player.overall}, ${mainPosition}`">
+  <div class="fut-card" :style="sizeStyle" role="img" :aria-label="`${player.name}, overall ${player.overall}, ${mainPosition}`">
     <div class="fut-card__meta">
       <span class="fut-card__overall">{{ player.overall }}</span>
       <span class="fut-card__position">{{ mainPosition }}</span>
@@ -31,11 +31,16 @@ export default {
   name: 'PlayerCard',
   props: {
     player: { type: Object, required: true },
+    width: { type: Number, default: 300 },
   },
   data: () => ({
     gs: new GeneralServices(),
   }),
   computed: {
+    sizeStyle() {
+      // Every inner dimension is in em, so the whole card scales with its width
+      return { width: `${this.width}px`, fontSize: `${this.width / 30}px` }
+    },
     positions() {
       return (this.player.specific_position || '').split(',').map(position => position.trim()).filter(Boolean)
     },
@@ -60,13 +65,12 @@ export default {
 </script>
 
 <style scoped>
-/* Positions are percentages of card-gold.png (252x350) */
+/* Positions are percentages of card-gold.png (252x350); sizes are em (1em = width / 30) */
 .fut-card {
   position: relative;
-  width: 300px;
   aspect-ratio: 252 / 350;
   background: url('~/assets/card-gold.png') center / contain no-repeat;
-  filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 1.6em 2.8em rgba(0, 0, 0, 0.45));
   font-family: 'DM Sans', sans-serif;
   color: #3b2a07;
 }
@@ -79,25 +83,25 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0.4em;
   width: 17%;
 }
 
 .fut-card__overall {
-  font-size: 40px;
+  font-size: 4em;
   font-weight: 800;
   line-height: 0.9;
-  letter-spacing: -1px;
+  letter-spacing: -0.1em;
 }
 
 .fut-card__position {
-  font-size: 18px;
+  font-size: 1.8em;
   font-weight: 700;
   line-height: 1;
 }
 
 .fut-card__other-positions {
-  font-size: 10px;
+  font-size: 1em;
   font-weight: 600;
   line-height: 1.2;
   text-align: center;
@@ -105,18 +109,18 @@ export default {
 }
 
 .fut-card__flag {
-  width: 30px;
-  height: 19px;
+  width: 3em;
+  height: 1.9em;
   object-fit: cover;
-  border-radius: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 0.2em;
+  box-shadow: 0 0.1em 0.3em rgba(0, 0, 0, 0.3);
 }
 
 .fut-card__club {
-  width: 26px;
-  height: 26px;
+  width: 2.6em;
+  height: 2.6em;
   object-fit: contain;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 0.1em 0.2em rgba(0, 0, 0, 0.3));
 }
 
 .fut-card__photo {
@@ -136,7 +140,7 @@ export default {
   left: 14%;
   right: 14%;
   z-index: 2;
-  font-size: 22px;
+  font-size: 2.2em;
   line-height: 1.15;
   font-weight: 800;
   text-align: center;
@@ -146,8 +150,8 @@ export default {
 }
 
 .fut-card__name--long {
-  font-size: 17px;
-  padding-top: 3px;
+  font-size: 1.7em;
+  padding-top: 0.3em;
 }
 
 .fut-card__stats {
@@ -168,13 +172,13 @@ export default {
 }
 
 .fut-card__stat-label {
-  font-size: 10px;
+  font-size: 1em;
   font-weight: 700;
   opacity: 0.75;
 }
 
 .fut-card__stat-value {
-  font-size: 20px;
+  font-size: 2em;
   font-weight: 800;
   line-height: 1;
 }
@@ -188,6 +192,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 1em;
 }
 </style>

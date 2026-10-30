@@ -68,10 +68,9 @@
     <!-- Create Dialog -->
     <v-dialog v-model="createDialog" :max-width="createStep === 1 ? 450 : 860" dark scrollable>
       <v-card class="dialog-card">
-        <v-card-title class="dialog-title">
-          Create New Championship
+        <DialogHeader title="New Championship" icon="mdi-trophy" @close="createDialog = false">
           <span class="step-indicator">Step {{ createStep }} of 2</span>
-        </v-card-title>
+        </DialogHeader>
         <v-card-text v-if="createStep === 1">
           <v-text-field
             v-model="newChampionship.name"
@@ -124,7 +123,7 @@
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="400" dark>
       <v-card class="dialog-card">
-        <v-card-title class="dialog-title">Delete Championship</v-card-title>
+        <DialogHeader title="Delete Championship" icon="mdi-delete" color="danger" @close="deleteDialog = false" />
         <v-card-text>
           Are you sure you want to delete <strong>{{ championshipToDelete ? championshipToDelete.name : '' }}</strong>?
           This will permanently delete all participants, draft picks, and matches.
@@ -140,11 +139,12 @@
 </template>
 
 <script>
+import DialogHeader from '@/components/dialogs/DialogHeader.vue'
 import DraftPoolSelection from '@/components/draftPool/DraftPoolSelection.vue'
 
 export default {
   name: 'Dashboard',
-  components: { DraftPoolSelection },
+  components: { DialogHeader, DraftPoolSelection },
   data() {
     return {
       championships: [],
@@ -389,14 +389,8 @@ export default {
   border-radius: 16px !important;
 }
 
-.dialog-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  color: rgba(226, 232, 240, 0.95);
-}
-
 .step-indicator {
-  margin-left: auto;
+  flex-shrink: 0;
   font-size: 13px;
   font-weight: 400;
   color: #94a3b8;
