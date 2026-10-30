@@ -92,7 +92,7 @@ export default {
       }
     },
   },
-  async created() {
+  async mounted() {
     await this.get_championship()
     await this.get_participants()
     if (this.isOwner) { await this.get_most_popular_teams() }
