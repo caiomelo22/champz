@@ -1,25 +1,17 @@
 import typing as t
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
+from app.models.team import TeamResponse
 from app.models_orm.player import Player
 from app.models_orm.team import Team
 from app.models_orm.user import User
 
 router = APIRouter()
-
-
-class TeamResponse(BaseModel):
-    name: str
-    image_path: str
-
-    class Config:
-        from_attributes = True
 
 
 @router.get("/most-popular", response_model=t.List[TeamResponse])

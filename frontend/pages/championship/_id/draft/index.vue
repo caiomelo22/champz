@@ -126,6 +126,18 @@
               <h3 class="card-title">Players</h3>
               <v-spacer />
               <v-btn
+                v-if="isOwner && championshipStatus === 'draft'"
+                small
+                outlined
+                color="#93c5fd"
+                class="mr-2"
+                :disabled="!positions.length"
+                @click="draftPoolDialog = true"
+              >
+                <v-icon left small>mdi-format-list-checks</v-icon>
+                Draft players
+              </v-btn>
+              <v-btn
                 v-if="isOwner"
                 small
                 color="primary"
@@ -349,6 +361,15 @@
         :auction="currentAuction"
         @close="configureAuctionDialog = false"
         @saved="auction_saved"
+      />
+    </v-dialog>
+
+    <v-dialog v-if="draftPoolDialog" v-model="draftPoolDialog" width="860px" max-width="90%" scrollable persistent>
+      <DraftPool
+        :championship-id="championshipId"
+        :positions="positions"
+        @close="draftPoolDialog = false"
+        @saved="draft_pool_saved"
       />
     </v-dialog>
 

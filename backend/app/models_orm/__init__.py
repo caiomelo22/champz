@@ -1,5 +1,6 @@
 from app.models_orm.user import User, OAuthAccount
 from app.models_orm.championship import Championship
+from app.models_orm.championship_player import ChampionshipPlayer
 from app.models_orm.participant import Participant
 from app.models_orm.player import Player
 from app.models_orm.team import Team
@@ -15,6 +16,7 @@ __all__ = [
     "User",
     "OAuthAccount",
     "Championship",
+    "ChampionshipPlayer",
     "Participant",
     "Player",
     "Team",

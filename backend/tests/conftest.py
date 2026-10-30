@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
-from app.models_orm import Championship, Nation, Participant, Player, PlayerAuction, Position, Team, User
+from app.models_orm import Championship, ChampionshipPlayer, Nation, Participant, Player, PlayerAuction, Position, Team, User
 from app.services.auction import utc_now
 
 
@@ -89,7 +89,7 @@ async def auction_setup(session):
         deadline=utc_now() + timedelta(hours=1),
         minimum_bid=10,
     )
-    session.add(auction)
+    session.add_all([auction, ChampionshipPlayer(championship_id=championship.id, player_id=player.id)])
     await session.commit()
 
     return {

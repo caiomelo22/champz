@@ -1,7 +1,6 @@
 import typing as t
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,9 +8,8 @@ from sqlalchemy.orm import selectinload
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
 from app.dependencies.championship import get_championship_access, require_owner
+from app.models.participant import ManageParticipantModel, ParticipantResponse
 from app.models_orm.bid import Bid
-from app.models_orm.championship import Championship
-from app.models_orm.draft_pick import DraftPick
 from app.models_orm.participant import Participant
 from app.models_orm.player_auction import PlayerAuction
 from app.models_orm.team import Team
@@ -19,26 +17,6 @@ from app.models_orm.user import User
 from app.services.participant_link import normalize_email
 
 router = APIRouter()
-
-
-class ManageParticipantModel(BaseModel):
-    team: str
-    name: str
-    budget: int = Field(ge=0)
-    user_email: t.Optional[str] = None
-
-
-class ParticipantResponse(BaseModel):
-    id: int
-    name: str
-    budget: t.Optional[int] = None
-    team_name: t.Optional[str] = None
-    team_image_path: t.Optional[str] = None
-    user_email: t.Optional[str] = None
-    link_status: str = "unlinked"
-
-    class Config:
-        from_attributes = True
 
 
 def _participant_to_response(

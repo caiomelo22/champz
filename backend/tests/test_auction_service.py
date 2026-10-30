@@ -6,13 +6,17 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 
 from app.models_orm.bid import Bid
+from app.models_orm.championship_player import ChampionshipPlayer
 from app.models_orm.draft_pick import DraftPick
 from app.models_orm.player import Player
 from app.models_orm.player_auction import PlayerAuction
 from app.models_orm.user import User
-from app.routers.v2.auction import ConfigureAuctionsModel, PlaceBidModel, configure_auction_batch, submit_bid
-from app.routers.v2.participant import ManageParticipantModel, update_participant
-from app.routers.v2.player import BuyPlayerModel, buy_player
+from app.models.auction import ConfigureAuctionsModel, PlaceBidModel
+from app.models.participant import ManageParticipantModel
+from app.routers.v2.auction import configure_auction_batch, submit_bid
+from app.routers.v2.participant import update_participant
+from app.models.player import BuyPlayerModel
+from app.routers.v2.player import buy_player
 from app.services.auction import (
     cancel_auction,
     close_auction,
@@ -286,6 +290,7 @@ async def test_batch_creates_and_restarts_cancelled_auctions(session, auction_se
         if column.name != 'id'
     }, id='new-player')
     session.add(new_player)
+    session.add(ChampionshipPlayer(championship_id=data['championship'].id, player_id=new_player.id))
     await session.commit()
     deadline = utc_now() + timedelta(hours=2)
 
@@ -344,6 +349,7 @@ async def test_batch_rejects_non_cancelled_auction_atomically(session, auction_s
         if column.name != 'id'
     }, id='blocked-player')
     session.add(new_player)
+    session.add(ChampionshipPlayer(championship_id=data['championship'].id, player_id=new_player.id))
     blocked = PlayerAuction(
         championship_id=data['championship'].id, player_id=new_player.id,
         status=blocked_status, minimum_bid=10, deadline=utc_now() + timedelta(hours=1),

@@ -1,15 +1,15 @@
-import math
 import typing as t
 from random import shuffle
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
-from sqlalchemy import select, func, case, and_, literal
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
+from app.models.group import GenerateKnockoutModel, GroupResponse, GroupTableParticipantResponse
+from app.models.match import MatchResponse
 from app.models_orm.championship import Championship
 from app.models_orm.group import Group, GroupParticipant
 from app.models_orm.match import Match
@@ -18,55 +18,6 @@ from app.models_orm.user import User
 from app.utils.helper import get_knockout_info
 
 router = APIRouter()
-
-
-class GroupResponse(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        from_attributes = True
-
-
-class GenerateKnockoutModel(BaseModel):
-    group_id: int
-    previous_round: int
-
-
-class GroupTableParticipantResponse(BaseModel):
-    group_id: int
-    participant_id: int
-    name: str
-    team_image_path: t.Optional[str] = None
-    GF: int = 0
-    GA: int = 0
-    GD: int = 0
-    W: int = 0
-    L: int = 0
-    D: int = 0
-    P: int = 0
-
-    class Config:
-        from_attributes = True
-
-
-class MatchResponse(BaseModel):
-    id: int
-    participant_1_id: int
-    participant_2_id: int
-    participant_1_name: str
-    participant_1_team_name: str
-    participant_1_team_image_path: str
-    participant_2_name: str
-    participant_2_team_name: str
-    participant_2_team_image_path: str
-    goals_1: t.Optional[int] = None
-    goals_2: t.Optional[int] = None
-    round: t.Optional[int] = None
-    penalties: t.Optional[bool] = False
-
-    class Config:
-        from_attributes = True
 
 
 def _match_to_response(m: Match) -> MatchResponse:

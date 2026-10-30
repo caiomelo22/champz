@@ -13,6 +13,7 @@ from app.models_orm.draft_pick import DraftPick
 from app.models_orm.participant import Participant
 from app.models_orm.player import Player
 from app.models_orm.player_auction import PlayerAuction
+from app.services.draft_pool import ensure_in_pool
 
 
 def utc_now() -> datetime:
@@ -60,6 +61,7 @@ async def configure_auctions(
     )
     if existing_players != set(normalized_player_ids):
         raise HTTPException(status_code=404, detail="One or more players were not found.")
+    await ensure_in_pool(session, championship_id, normalized_player_ids)
 
     existing_pick = (
         await session.execute(

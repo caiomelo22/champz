@@ -1,22 +1,14 @@
-import typing as t
-
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
+from app.models.match import UpdateMatchModel
 from app.models_orm.match import Match
 from app.models_orm.user import User
 
 router = APIRouter()
-
-
-class UpdateMatchModel(BaseModel):
-    goals_1: int
-    goals_2: int
-    penalties: t.Optional[bool] = False
 
 
 @router.patch("/update/{match_id}")

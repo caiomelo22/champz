@@ -5,6 +5,7 @@ import ParticipantTeam from '@/components/dialogs/participantTeam/index.vue'
 import AuctionCountdown from '@/components/auctions/AuctionCountdown.vue'
 import ConfigureAuction from '@/components/dialogs/configureAuction/index.vue'
 import PlaceBid from '@/components/dialogs/placeBid/index.vue'
+import DraftPool from '@/components/dialogs/draftPool/index.vue'
 
 export default {
   name: 'ChampionshipDraft',
@@ -15,6 +16,7 @@ export default {
     AuctionCountdown,
     ConfigureAuction,
     PlaceBid,
+    DraftPool,
   },
   data: () => ({
     gs: new GeneralServices(),
@@ -24,6 +26,7 @@ export default {
     participantTeamDialog: false,
     configureAuctionDialog: false,
     placeBidDialog: false,
+    draftPoolDialog: false,
     participants: [],
     genericBudget: 250,
     positions: [],
@@ -42,6 +45,7 @@ export default {
     selectedTeam: null,
     newParticipant: { name: null, budget: null, team: null, user_email: null },
     championshipName: '',
+    championshipStatus: null,
     accessRole: null,
     myParticipantId: null,
   }),
@@ -104,6 +108,7 @@ export default {
       try {
         const response = await this.$axios.get(`championship/${this.championshipId}`)
         this.championshipName = response.data.name
+        this.championshipStatus = response.data.status
         this.genericBudget = response.data.budget_default
         this.accessRole = response.data.access_role
         this.myParticipantId = response.data.participant_id
@@ -279,6 +284,11 @@ export default {
       this.update_player(player)
       await this.get_participants()
       this.reset_player_modal()
+    },
+    async draft_pool_saved() {
+      this.draftPoolDialog = false
+      this.$toast.success('Draft players updated.')
+      if (this.positions[this.tab]) { await this.get_players_by_position_algorithm(this.positions[this.tab].id) }
     },
     open_batch_auction() {
       this.currentAuction = null

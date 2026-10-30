@@ -1,48 +1,20 @@
 import typing as t
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
 from app.dependencies.championship import get_championship_access, require_owner
+from app.models.championship import ChampionshipResponse, CreateChampionshipModel, UpdateChampionshipModel
 from app.models_orm.championship import Championship
-from app.models_orm.group import Group
-from app.models_orm.match import Match
 from app.models_orm.participant import Participant
 from app.models_orm.user import User
 from app.models_orm.player_auction import PlayerAuction
+from app.services.draft_pool import add_pool_players
 
 router = APIRouter()
-
-
-class CreateChampionshipModel(BaseModel):
-    name: str
-    budget_default: int = 250
-
-
-class UpdateChampionshipModel(BaseModel):
-    name: t.Optional[str] = None
-    status: t.Optional[str] = None
-
-
-class ChampionshipResponse(BaseModel):
-    id: int
-    name: str
-    status: str
-    budget_default: int
-    created_at: datetime
-    updated_at: datetime
-    num_participants: int = 0
-    access_role: str = "owner"
-    participant_id: t.Optional[int] = None
-
-    class Config:
-        from_attributes = True
 
 
 @router.post("/create", response_model=ChampionshipResponse)
@@ -57,6 +29,8 @@ async def create_championship(
         budget_default=data.budget_default,
     )
     session.add(championship)
+    await session.flush()
+    await add_pool_players(session, championship.id, data.player_ids)
     await session.commit()
     await session.refresh(championship)
 

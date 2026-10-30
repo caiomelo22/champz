@@ -1,7 +1,4 @@
-import uuid
-
 from fastapi_users.db import SQLAlchemyBaseOAuthAccountTableUUID, SQLAlchemyBaseUserTableUUID
-from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base

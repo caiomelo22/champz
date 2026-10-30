@@ -66,10 +66,13 @@
     </div>
 
     <!-- Create Dialog -->
-    <v-dialog v-model="createDialog" max-width="450" dark>
+    <v-dialog v-model="createDialog" :max-width="createStep === 1 ? 450 : 860" dark scrollable>
       <v-card class="dialog-card">
-        <v-card-title class="dialog-title">Create New Championship</v-card-title>
-        <v-card-text>
+        <v-card-title class="dialog-title">
+          Create New Championship
+          <span class="step-indicator">Step {{ createStep }} of 2</span>
+        </v-card-title>
+        <v-card-text v-if="createStep === 1">
           <v-text-field
             v-model="newChampionship.name"
             label="Championship Name"
@@ -87,11 +90,31 @@
             type="number"
             prefix="$"
           />
+          <v-text-field
+            v-model.number="expectedParticipants"
+            label="Expected Participants"
+            hint="Used to pre-select the players of the draft"
+            persistent-hint
+            outlined
+            dense
+            dark
+            type="number"
+            min="1"
+          />
+          <v-alert v-if="createError" type="error" dense class="mt-4">{{ createError }}</v-alert>
+        </v-card-text>
+        <v-card-text v-else>
+          <DraftPoolSelection v-model="poolPlayerIds" :players="catalog" :positions="positions" />
+          <v-alert v-if="createError" type="error" dense class="mt-4">{{ createError }}</v-alert>
         </v-card-text>
         <v-card-actions>
+          <v-btn v-if="createStep === 2" text :disabled="creating" @click="createStep = 1">Back</v-btn>
           <v-spacer />
           <v-btn text @click="createDialog = false">Cancel</v-btn>
-          <v-btn color="primary" :loading="creating" @click="createChampionship" class="create-action-btn">
+          <v-btn v-if="createStep === 1" color="primary" :loading="loadingCatalog" @click="goToPoolStep" class="create-action-btn">
+            Next
+          </v-btn>
+          <v-btn v-else color="primary" :loading="creating" @click="createChampionship" class="create-action-btn">
             Create
           </v-btn>
         </v-card-actions>
@@ -117,8 +140,11 @@
 </template>
 
 <script>
+import DraftPoolSelection from '@/components/draftPool/DraftPoolSelection.vue'
+
 export default {
   name: 'Dashboard',
+  components: { DraftPoolSelection },
   data() {
     return {
       championships: [],
@@ -128,13 +154,67 @@ export default {
       creating: false,
       deleting: false,
       newChampionship: { name: '', budget_default: 250 },
+      createStep: 1,
+      createError: null,
+      expectedParticipants: null,
+      catalog: [],
+      catalogParticipants: null,
+      positions: [],
+      poolPlayerIds: [],
+      loadingCatalog: false,
       championshipToDelete: null,
     }
+  },
+  watch: {
+    createDialog(open) {
+      if (!open) { this.resetCreate() }
+    },
   },
   async mounted() {
     await this.fetchChampionships()
   },
   methods: {
+    resetCreate() {
+      this.newChampionship = { name: '', budget_default: 250 }
+      this.createStep = 1
+      this.createError = null
+      this.expectedParticipants = null
+      this.catalog = []
+      this.catalogParticipants = null
+      this.poolPlayerIds = []
+    },
+    async goToPoolStep() {
+      this.createError = null
+      const participants = Number(this.expectedParticipants)
+      if (!this.newChampionship.name) {
+        this.createError = 'Championship name is required.'
+        return
+      }
+      if (!Number.isInteger(participants) || participants < 1) {
+        this.createError = 'Expected participants must be at least 1.'
+        return
+      }
+      // Keep manual changes when going back and forth without changing the number of participants
+      if (this.catalogParticipants !== participants) {
+        this.loadingCatalog = true
+        try {
+          const [positions, catalog] = await Promise.all([
+            this.positions.length ? { data: this.positions } : this.$axios.get('position/list'),
+            this.$axios.get(`championship/player/catalog?num_participants=${participants}`),
+          ])
+          this.positions = positions.data
+          this.catalog = catalog.data
+          this.poolPlayerIds = catalog.data.filter(player => player.selected).map(player => player.id)
+          this.catalogParticipants = participants
+        } catch {
+          this.createError = 'Players could not be loaded.'
+          return
+        } finally {
+          this.loadingCatalog = false
+        }
+      }
+      this.createStep = 2
+    },
     async fetchChampionships() {
       this.loading = true
       try {
@@ -149,9 +229,8 @@ export default {
       if (!this.newChampionship.name) return
       this.creating = true
       try {
-        await this.$axios.post('championship/create', this.newChampionship)
+        await this.$axios.post('championship/create', { ...this.newChampionship, player_ids: this.poolPlayerIds })
         this.createDialog = false
-        this.newChampionship = { name: '', budget_default: 250 }
         await this.fetchChampionships()
         this.$toast.success('Championship created!')
       } catch (err) {
@@ -314,6 +393,13 @@ export default {
   font-family: 'DM Sans', sans-serif;
   font-weight: 700;
   color: rgba(226, 232, 240, 0.95);
+}
+
+.step-indicator {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 400;
+  color: #94a3b8;
 }
 
 .create-action-btn {

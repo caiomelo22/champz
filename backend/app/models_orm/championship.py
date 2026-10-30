@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi_users_db_sqlalchemy.generics import GUID
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship

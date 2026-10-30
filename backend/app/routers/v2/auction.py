@@ -1,8 +1,7 @@
 import typing as t
-from datetime import datetime, timezone
+from datetime import timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -10,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from app.auth.users import current_active_user
 from app.db.base import get_async_session
 from app.dependencies.championship import get_championship_access, require_owner
+from app.models.auction import AuctionResponse, BidResultResponse, ConfigureAuctionsModel, PlaceBidModel, UpdateAuctionModel
 from app.models_orm.bid import Bid
 from app.models_orm.player_auction import PlayerAuction
 from app.models_orm.user import User
@@ -23,41 +23,6 @@ from app.services.auction import (
 
 
 router = APIRouter()
-
-
-class ConfigureAuctionsModel(BaseModel):
-    player_ids: list[str] = Field(min_length=1)
-    deadline: datetime
-    minimum_bid: int = Field(gt=0)
-
-
-class UpdateAuctionModel(BaseModel):
-    deadline: datetime
-    minimum_bid: int = Field(gt=0)
-
-
-class PlaceBidModel(BaseModel):
-    amount: int = Field(gt=0)
-    participant_id: t.Optional[int] = None
-
-
-class AuctionResponse(BaseModel):
-    id: int
-    player_id: str
-    player_name: str
-    deadline: datetime
-    minimum_bid: int
-    status: str
-    leading_participant_id: t.Optional[int] = None
-    leading_participant_name: t.Optional[str] = None
-    leading_bid: t.Optional[int] = None
-    bid_count: int = 0
-    is_current_user_leader: bool = False
-
-
-class BidResultResponse(BaseModel):
-    auction: AuctionResponse
-    available_budget: int
 
 
 async def _auction_response(
